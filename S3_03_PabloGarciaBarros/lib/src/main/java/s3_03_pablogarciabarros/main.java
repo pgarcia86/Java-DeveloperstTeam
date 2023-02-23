@@ -41,7 +41,9 @@ public class main {
 		else if(opcion == 2) {
 			return crearFloristeria();
 		}
-		return null;
+		else {
+			return null;	
+		}		
 	}
 
 	public static int menuPrincipal() {
@@ -68,18 +70,18 @@ public class main {
 		switch(entrada.nextInt()) {
 			case 1:
 				System.out.println("Agregar arbol");
-				insertarDato(insertarArbol(nombreDB), conexionActual);
+				insertarArbol(conexionActual);
 				
 				break;
 				
 			case 2:
 				System.out.println("Agregar planta");
-				insertarDato(insertarFlor(nombreDB), conexionActual);
+				insertarFlor(conexionActual);
 				break;
 				
 			case 3:
 				System.out.println("Agregar decoracion");
-				insertarDato(insertarDecoracion(nombreDB), conexionActual);
+				insertarDecoracion(conexionActual);
 				break;
 				
 			case 0:
@@ -221,6 +223,8 @@ public class main {
 		}		
 	}
 	
+	
+	//Conecto a una base de datos ya existente. Me devuelve un Objeto del tipo Connection. Trabajare sobre esa conexion
 	public static Connection conectarBaseDatos() {
 		
 		System.out.println("Ingrese el nombre de la base de datos a la que quiere conectarse");
@@ -233,6 +237,8 @@ public class main {
 		
 	}
 	
+	
+	//Creo la base de datos desde cero. Devuelvo el Objeto Connection. Trabajare sobre esa conexion
 	public static Connection crearFloristeria() {
 
 		System.out.println("Ingrese el nombre de la floristeria");
@@ -242,38 +248,83 @@ public class main {
 		String borrarDB = "DROP DATABASE IF EXISTS " + nombreDB;		//Creo la sentencia SQL para eliminar la DB si existe	
 		String query = "CREATE DATABASE " + nombreDB + " CHARACTER SET utf8mb4";	//Creo la sentencia para crear la base de datos
 		String usarDB = "USE " + nombreDB;
+		
+		String crearTablaTipoProducto = "CREATE TABLE tipo_producto(id_tipo_producto INT PRIMARY KEY, descripcion VARCHAR(20))";
+		String crearTablaProductos = "CREATE TABLE productos(id_producto INT AUTO_INCREMENT PRIMARY KEY, id_tipo_producto INT NOT NULL,"
+				+ "precio DOUBLE NOT NULL, FOREIGN KEY(id_tipo_producto) REFERENCES tipo_producto(id_tipo_producto))";
 		String crearTablaArbol = "CREATE TABLE arbol(id_arbol INT AUTO_INCREMENT PRIMARY KEY, altura DOUBLE NOT NULL, "
 				+ "precio DOUBLE NOT NULL, cantidad INT NOT NULL)";
 		String crearTablaFlor = "CREATE TABLE flor(id_flor INT AUTO_INCREMENT PRIMARY KEY, color VARCHAR(20) NOT NULL, "
 				+ "precio DOUBLE NOT NULL, cantidad INT NOT NULL)";
 		String crearTablaDecoracion = "CREATE TABLE decoracion(id_decoracion INT AUTO_INCREMENT PRIMARY KEY, material VARCHAR(20) NOT NULL, "
 				+ "precio DOUBLE NOT NULL, cantidad INT NOT NULL)";
+		String crearTablaComanda = "CREATE TABLE comandas(id_comanda INT NOT NULL AUTO_INCREMENT PRIMARY KEY, Dia DATE NOT NULL)";
+		String crearTablaDetalleComanda = "CREATE TABLE detalle_comanda(id_comanda INT NOT NULL, id_producto INT, cantidad INT,"
+				+ "FOREIGN KEY(id_comanda) REFERENCES comandas(id_comanda), FOREIGN KEY(id_producto) REFERENCES productos(id_producto))";
 		
-		try {
+		
 			ConexionBaseDatos conexion = new ConexionBaseDatos();
 			Connection conect = conexion.conectarNuevaBD();
+			
+		try {
 			Statement borrar = conect.createStatement();
 			borrar.execute(borrarDB);	//Ejecuto la sentencia que elimina la DB
 			Statement sqlQuery = conect.createStatement();
 			sqlQuery.execute(query);	//Ejecuto la sentencia que crea la DB
 			Statement usar = conect.createStatement();
 			usar.execute(usarDB);
-			PreparedStatement crearTabla1 = conect.prepareStatement(crearTablaArbol);
+			PreparedStatement crearTabla1 = conect.prepareStatement(crearTablaTipoProducto);
 			crearTabla1.execute();
-			PreparedStatement crearTabla2 = conect.prepareStatement(crearTablaFlor);
+			PreparedStatement crearTabla2 = conect.prepareStatement(crearTablaProductos);
 			crearTabla2.execute();
-			PreparedStatement crearTabla3 = conect.prepareStatement(crearTablaDecoracion);
+			PreparedStatement crearTabla3 = conect.prepareStatement(crearTablaArbol);
 			crearTabla3.execute();
+			PreparedStatement crearTabla4 = conect.prepareStatement(crearTablaFlor);
+			crearTabla4.execute();
+			PreparedStatement crearTabla5 = conect.prepareStatement(crearTablaDecoracion);
+			crearTabla5.execute();
+			PreparedStatement crearTabla6 = conect.prepareStatement(crearTablaComanda);
+			crearTabla6.execute();
+			PreparedStatement crearTabla7 = conect.prepareStatement(crearTablaDetalleComanda);
+			crearTabla7.execute();
+			insertarTipoProducto(conect);
 			System.out.println("Se creo la base de datos");
 		}
 		catch(SQLException e) {
 			System.out.println("No se pudo crear la base de datos");	//Si hubo algun problema ejecuta esto
-		}		
-		
+		}
 		return conect;
 	}
 	
-	public static String insertarArbol(String nombreDB) {
+	
+	//Inserto el tipo de producto al crear la base de datos nueva
+	public static void insertarTipoProducto(Connection conexionActual) {
+		
+		//String insertar = "INSERT INTO tipo_producto(id_tipo_producto, descripcion) VALUES(1, 'Arbol')";
+		
+		try {
+			PreparedStatement insertarValores = conexionActual.prepareStatement("INSERT INTO tipo_producto(id_tipo_producto, descripcion) "
+					+ "VALUES(1, 'Arbol')");
+			insertarValores.executeUpdate("INSERT INTO tipo_producto(id_tipo_producto, descripcion) "
+					+ "VALUES(1, 'Arbol')");
+			PreparedStatement insertarValores2 = conexionActual.prepareStatement("INSERT INTO tipo_producto(id_tipo_producto, descripcion) "
+					+ "VALUES(2, 'Flor')");
+			insertarValores2.executeUpdate("INSERT INTO tipo_producto(id_tipo_producto, descripcion) "
+					+ "VALUES(2, 'Flor')");
+			PreparedStatement insertarValores3 = conexionActual.prepareStatement("INSERT INTO tipo_producto(id_tipo_producto, descripcion) "
+					+ "VALUES(3, 'Decoracion')");
+			insertarValores3.executeUpdate("INSERT INTO tipo_producto(id_tipo_producto, descripcion) "
+					+ "VALUES(3, 'Decoracion')");
+			System.out.println("Se creo correctamente");
+		}
+		catch(SQLException e) {
+			System.out.println("No se pudo crear");
+		}
+	}
+	
+	
+	//Creo el Query que va a servir para insertarDato. Paso como paramentro el objeto del tipo Connection
+	public static void insertarArbol(Connection conexionActual) {
 		
 		System.out.println("Ingrese la altura del arbol");
 		double altura = entrada.nextDouble();
@@ -282,12 +333,16 @@ public class main {
 		System.out.println("Ingrese la cantidad de arboles");
 		int cantidad = entrada.nextInt();
 		
-		String insertar = "INSERT INTO arbol(altura, precio, cantidad) VALUES(" + altura + "," + precio + "," + cantidad +")";
+		String insertar = "INSERT INTO arbol(altura, precio, cantidad) VALUES(" + altura + "," + precio + "," + cantidad +")";		
+		insertarDato(insertar, conexionActual);
 		
-		return insertar;
+		String insertarProducto = "INSERT INTO productos(id_tipo_producto, precio) VALUES(1, " + precio + ")";		
+		insertarDato(insertarProducto, conexionActual);
 	}
 	
-	public static String insertarFlor(String nombreDB) {
+	
+	//Creo el Query que va a servir para insertarDato. Paso como paramentro el objeto del tipo Connection
+	public static void insertarFlor(Connection conexionActual) {
 		
 		System.out.println("Ingrese el color de la flor");
 		String color = entrada.next();
@@ -297,11 +352,14 @@ public class main {
 		int cantidad = entrada.nextInt();
 		
 		String insertar = "INSERT INTO flor(color, precio, cantidad) VALUES('" + color + "'," + precio + "," + cantidad +")";
-		
-		return insertar;
+		insertarDato(insertar, conexionActual);
+		String insertarProducto = "INSERT INTO productos(id_tipo_producto, precio) VALUES(2, " + precio + ")";		
+		insertarDato(insertarProducto, conexionActual);
 	}
 	
-	public static String insertarDecoracion(String nombreDB) {
+	
+	//Creo el Query que va a servir para insertarDato. Paso como paramentro el objeto del tipo Connection
+	public static void insertarDecoracion(Connection conexionActual) {
 		
 		System.out.println("Ingrese el material de la decoracion");
 		String tipoMaterial = entrada.next();
@@ -312,22 +370,27 @@ public class main {
 		
 		String insertar = "INSERT INTO decoracion(material, precio, cantidad) VALUES('" + tipoMaterial 
 			+ "'," + precio + "," + cantidad +")";
-		
-		return insertar;
+		insertarDato(insertar, conexionActual);
+		String insertarTipoProducto = "INSERT INTO productos(id_tipo_producto, precio) VALUES(3, " + precio + ")";		
+		insertarDato(insertarTipoProducto, conexionActual);
 	}
 	
+	
+	//Inserto el dato en la BD. Recibe como parametro el query y la conexion
 	public static void insertarDato(String insertar, Connection conexionActual) {
 		
 		try {
 			PreparedStatement insertarValores = conexionActual.prepareStatement(insertar);
 			insertarValores.executeUpdate(insertar);
-			System.out.println("Se inserto correctamente la decoracion");
+			System.out.println("Se inserto correctamente");
 		}
 		catch(SQLException e) {
-			System.out.println("No se pudo insertar la decoracion");
+			System.out.println("No se pudo insertar");
 		}		
 	}
 	
+	
+	//
 	public static void imprimirStockArboles(Connection conexionActual) {
 		
 		String query = "SELECT SUM(cantidad) AS 'Cantidad de arboles' FROM arbol";
@@ -344,6 +407,8 @@ public class main {
 		}		
 	}
 	
+	
+	//
 	public static void imprimirStockFlores(Connection conexionActual) {
 		
 		String query = "SELECT SUM(cantidad) AS 'Cantidad de flores' FROM flor";
@@ -360,6 +425,8 @@ public class main {
 		}			
 	}
 	
+	
+	//
 	public static void imprimirStockDecoraciones(Connection conexionActual) {
 		
 		String query = "SELECT SUM(cantidad) AS 'Cantidad de decoraciones' FROM decoracion";
@@ -377,6 +444,8 @@ public class main {
 		
 	}
 	
+	
+	//
 	public static void crearTicket() {
 		System.out.println("Creo ticket nuevo");
 	}
