@@ -1,6 +1,7 @@
 package s3_03_pablogarciabarros;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Scanner;
@@ -8,16 +9,17 @@ import java.util.Scanner;
 public class main {
 
 	static Scanner entrada = new Scanner(System.in);
+	static ConexionBaseDatos conexion = null;
+	static Connection conect = null;
+	static String nombreDB;
 	
-	static ConexionBaseDatos conexion = new ConexionBaseDatos();
-	static Connection conect = conexion.conectarBD();
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		
-		//Prueba
-		
+				
 		int opcion;
+		
+		primerMenu();
 		
 		do{
 			opcion = menuPrincipal();
@@ -25,22 +27,35 @@ public class main {
 			
 		}while(opcion != 0);
 	}
+	
+	public static void primerMenu() {
+		System.out.println("INGRESE LA OPCION DESEADA" +
+			"\n1. Conectarse a una floristeria existente" +
+			"\n2. Crear una nueva floristeria");
+		int opcion = entrada.nextInt();
+		
+		if(opcion == 1) {
+			conectarBaseDatos();
+		}
+		else if(opcion == 2) {
+			crearFloristeria();
+		}
+	}
 
 	public static int menuPrincipal() {
 		
 		System.out.println("INGRESE LA OPCION DESEADA: " +
-			"\n1. Crear nueva floristeria" +
-			"\n2. Agregar productos"	+
-			"\n3. Retirar productos" +
-			"\n4. Imprimir stock" +
-			"\n5. Crear ticket de venta" +
-			"\n6. Mostrar historico de ventas" +
+			"\n1. Agregar productos"	+
+			"\n2. Retirar productos" +
+			"\n3. Imprimir stock" +
+			"\n4. Crear ticket de venta" +
+			"\n5. Mostrar historico de ventas" +
 			"\n0. Salir de la aplicacion");	
 		
 		return entrada.nextInt();
 	}
 	
-	public static void menuAgregarProductos() {
+	public static void menuAgregarProductos(String nombreDB) {
 		
 		System.out.println("INGRESE LA OPCION DESEADA: " +
 			"\n1. Agregar arbol" +
@@ -51,14 +66,18 @@ public class main {
 		switch(entrada.nextInt()) {
 			case 1:
 				System.out.println("Agregar arbol");
+				insertarDato(insertarArbol(nombreDB), nombreDB);
+				
 				break;
 				
 			case 2:
 				System.out.println("Agregar planta");
+				insertarDato(insertarFlor(nombreDB), nombreDB);
 				break;
 				
 			case 3:
 				System.out.println("Agregar decoracion");
+				insertarDato(insertarDecoracion(nombreDB), nombreDB);
 				break;
 				
 			case 0:
@@ -100,8 +119,7 @@ public class main {
 				System.out.println("Opcion no valida");
 				break;				
 		}		
-	}
-	
+	}	
 	
 	public static void menuImprimirStock() {
 		
@@ -167,29 +185,24 @@ public class main {
 	
 	public static void manejoMenu(int opcion) {
 		
-		switch(opcion) {
-		
+		switch(opcion) {		 
 		 case 1:
-			 crearFloristeria();
+			 menuAgregarProductos(nombreDB);
 			 break;
 		 
 		 case 2:
-			 menuAgregarProductos();
-			 break;
-		 
-		 case 3:
 			 menuRetirarProductos();
+			 break;
+			 
+		 case 3:
+			 menuImprimirStock();
 			 break;
 		 
 		 case 4:
-			 menuImprimirStock();
+			 crearTicket();
 			 break;
 			 
 		 case 5:
-			 crearTicket();
-			 break;
-		 
-		 case 6:
 			 menuHistoricoVentas();
 			 break;
 			 
@@ -203,25 +216,110 @@ public class main {
 		}		
 	}
 	
+	public static void conectarBaseDatos() {
+		
+		System.out.println("Ingrese el nombre de la base de datos a la que quiere conectarse");
+		nombreDB = entrada.next();
+		
+		ConexionBaseDatos conexion = new ConexionBaseDatos();
+		Connection conect = conexion.conectarDB(nombreDB);		
+		
+	}
+	
 	public static void crearFloristeria() {
 
 		System.out.println("Ingrese el nombre de la floristeria");
 		
-		String nombreDB = entrada.next();
+		nombreDB = entrada.next();
 		
-		String borrarDB = "DROP DATABASE IF EXISTS " + nombreDB; 		
-		String query = "CREATE DATABASE " + nombreDB + " CHARACTER SET utf8mb4";
+		String borrarDB = "DROP DATABASE IF EXISTS " + nombreDB;		//Creo la sentencia SQL para eliminar la DB si existe	
+		String query = "CREATE DATABASE " + nombreDB + " CHARACTER SET utf8mb4";	//Creo la sentencia para crear la base de datos
+		String usarDB = "USE " + nombreDB;
+		String crearTablaArbol = "CREATE TABLE arbol(id_arbol INT AUTO_INCREMENT PRIMARY KEY, altura DOUBLE NOT NULL, "
+				+ "precio DOUBLE NOT NULL, cantidad INT NOT NULL)";
+		String crearTablaFlor = "CREATE TABLE flor(id_flor INT AUTO_INCREMENT PRIMARY KEY, color VARCHAR(20) NOT NULL, "
+				+ "precio DOUBLE NOT NULL, cantidad INT NOT NULL)";
+		String crearTablaDecoracion = "CREATE TABLE decoracion(id_decoracion INT AUTO_INCREMENT PRIMARY KEY, material VARCHAR(20) NOT NULL, "
+				+ "precio DOUBLE NOT NULL, cantidad INT NOT NULL)";
 		
 		try {
+			ConexionBaseDatos conexion = new ConexionBaseDatos();
+			Connection conect = conexion.conectarNuevaBD();
 			Statement borrar = conect.createStatement();
-			borrar.execute(borrarDB);
+			borrar.execute(borrarDB);	//Ejecuto la sentencia que elimina la DB
 			Statement sqlQuery = conect.createStatement();
-			sqlQuery.execute(query);
+			sqlQuery.execute(query);	//Ejecuto la sentencia que crea la DB
+			Statement usar = conect.createStatement();
+			usar.execute(usarDB);
+			PreparedStatement crearTabla1 = conect.prepareStatement(crearTablaArbol);
+			crearTabla1.execute();
+			PreparedStatement crearTabla2 = conect.prepareStatement(crearTablaFlor);
+			crearTabla2.execute();
+			PreparedStatement crearTabla3 = conect.prepareStatement(crearTablaDecoracion);
+			crearTabla3.execute();
 			System.out.println("Se creo la base de datos");
 		}
 		catch(SQLException e) {
-			System.out.println("No se pudo crear la base de datos");
+			System.out.println("No se pudo crear la base de datos");	//Si hubo algun problema ejecuta esto
 		}		
+	}
+	
+	public static String insertarArbol(String nombreDB) {
+		
+		System.out.println("Ingrese la altura del arbol");
+		double altura = entrada.nextDouble();
+		System.out.println("Ingrese el precio del arbol");
+		double precio = entrada.nextDouble();
+		System.out.println("Ingrese la cantidad de arboles");
+		int cantidad = entrada.nextInt();
+		
+		String insertar = "INSERT INTO arbol(altura, precio, cantidad) VALUES(" + altura + "," + precio + "," + cantidad +")";
+		
+		return insertar;
+	}
+	
+	public static String insertarFlor(String nombreDB) {
+		
+		System.out.println("Ingrese el color de la flor");
+		String color = entrada.next();
+		System.out.println("Ingrese el precio de la flor");
+		double precio = entrada.nextDouble();
+		System.out.println("Ingrese la cantidad de flores");
+		int cantidad = entrada.nextInt();
+		
+		String insertar = "INSERT INTO flor(color, precio, cantidad) VALUES('" + color + "'," + precio + "," + cantidad +")";
+		
+		return insertar;
+	}
+	
+	public static String insertarDecoracion(String nombreDB) {
+		
+		System.out.println("Ingrese el material de la decoracion");
+		String tipoMaterial = entrada.next();
+		System.out.println("Ingrese el precio de la decoracion");
+		double precio = entrada.nextDouble();
+		System.out.println("Ingrese la cantidad de decoraciones");
+		int cantidad = entrada.nextInt();
+		
+		String insertar = "INSERT INTO decoracion(material, precio, cantidad) VALUES('" + tipoMaterial 
+			+ "'," + precio + "," + cantidad +")";
+		
+		return insertar;
+	}
+	
+	public static void insertarDato(String insertar, String nombreDB) {
+		
+		try {
+			conexion = new ConexionBaseDatos(); 
+			conect = conexion.conectarDB(nombreDB);
+			PreparedStatement insertarValores = conect.prepareStatement(insertar);
+			insertarValores.executeUpdate(insertar);
+			System.out.println("Se inserto correctamente la decoracion");
+		}
+		catch(SQLException e) {
+			System.out.println("No se pudo insertar la decoracion");
+		}
+		
 	}
 	
 	public static void crearTicket() {
