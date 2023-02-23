@@ -2,6 +2,7 @@ package s3_03_pablogarciabarros;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Scanner;
@@ -16,30 +17,31 @@ public class main {
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-				
+		
 		int opcion;
 		
-		primerMenu();
+		Connection conexionActual = primerMenu();
 		
 		do{
 			opcion = menuPrincipal();
-			manejoMenu(opcion);
+			manejoMenu(conexionActual, opcion);
 			
 		}while(opcion != 0);
 	}
 	
-	public static void primerMenu() {
+	public static Connection primerMenu() {
 		System.out.println("INGRESE LA OPCION DESEADA" +
 			"\n1. Conectarse a una floristeria existente" +
 			"\n2. Crear una nueva floristeria");
 		int opcion = entrada.nextInt();
 		
 		if(opcion == 1) {
-			conectarBaseDatos();
+			return conectarBaseDatos();
 		}
 		else if(opcion == 2) {
-			crearFloristeria();
+			return crearFloristeria();
 		}
+		return null;
 	}
 
 	public static int menuPrincipal() {
@@ -55,7 +57,7 @@ public class main {
 		return entrada.nextInt();
 	}
 	
-	public static void menuAgregarProductos(String nombreDB) {
+	public static void menuAgregarProductos(Connection conexionActual, String nombreDB) {
 		
 		System.out.println("INGRESE LA OPCION DESEADA: " +
 			"\n1. Agregar arbol" +
@@ -66,18 +68,18 @@ public class main {
 		switch(entrada.nextInt()) {
 			case 1:
 				System.out.println("Agregar arbol");
-				insertarDato(insertarArbol(nombreDB), nombreDB);
+				insertarDato(insertarArbol(nombreDB), conexionActual);
 				
 				break;
 				
 			case 2:
 				System.out.println("Agregar planta");
-				insertarDato(insertarFlor(nombreDB), nombreDB);
+				insertarDato(insertarFlor(nombreDB), conexionActual);
 				break;
 				
 			case 3:
 				System.out.println("Agregar decoracion");
-				insertarDato(insertarDecoracion(nombreDB), nombreDB);
+				insertarDato(insertarDecoracion(nombreDB), conexionActual);
 				break;
 				
 			case 0:
@@ -121,7 +123,7 @@ public class main {
 		}		
 	}	
 	
-	public static void menuImprimirStock() {
+	public static void menuImprimirStock(Connection conexionActual) {
 		
 		System.out.println("INGRESE LA OPCION DESEADA: " +
 			"\n1. Imprimir stock total" +
@@ -137,14 +139,17 @@ public class main {
 				
 			case 2:
 				System.out.println("Imprimir stock de arboles");
+				imprimirStockArboles(conexionActual);
 				break;
 				
 			case 3:
-				System.out.println("Imprimir stock de plantas");
+				System.out.println("Imprimir stock de flores");
+				imprimirStockFlores(conexionActual);
 				break;
 				
 			case 4:
 				System.out.println("Imprimir stock de decoraciones");
+				imprimirStockDecoraciones(conexionActual);
 				break;
 				
 			case 0:
@@ -183,11 +188,11 @@ public class main {
 		}		
 	}
 	
-	public static void manejoMenu(int opcion) {
+	public static void manejoMenu(Connection conexionActual, int opcion) {
 		
 		switch(opcion) {		 
 		 case 1:
-			 menuAgregarProductos(nombreDB);
+			 menuAgregarProductos(conexionActual, nombreDB);
 			 break;
 		 
 		 case 2:
@@ -195,7 +200,7 @@ public class main {
 			 break;
 			 
 		 case 3:
-			 menuImprimirStock();
+			 menuImprimirStock(conexionActual);
 			 break;
 		 
 		 case 4:
@@ -216,17 +221,19 @@ public class main {
 		}		
 	}
 	
-	public static void conectarBaseDatos() {
+	public static Connection conectarBaseDatos() {
 		
 		System.out.println("Ingrese el nombre de la base de datos a la que quiere conectarse");
 		nombreDB = entrada.next();
 		
 		ConexionBaseDatos conexion = new ConexionBaseDatos();
-		Connection conect = conexion.conectarDB(nombreDB);		
+		Connection conect = conexion.conectarDB(nombreDB);	
+		
+		return conect;
 		
 	}
 	
-	public static void crearFloristeria() {
+	public static Connection crearFloristeria() {
 
 		System.out.println("Ingrese el nombre de la floristeria");
 		
@@ -262,6 +269,8 @@ public class main {
 		catch(SQLException e) {
 			System.out.println("No se pudo crear la base de datos");	//Si hubo algun problema ejecuta esto
 		}		
+		
+		return conect;
 	}
 	
 	public static String insertarArbol(String nombreDB) {
@@ -307,18 +316,64 @@ public class main {
 		return insertar;
 	}
 	
-	public static void insertarDato(String insertar, String nombreDB) {
+	public static void insertarDato(String insertar, Connection conexionActual) {
 		
 		try {
-			conexion = new ConexionBaseDatos(); 
-			conect = conexion.conectarDB(nombreDB);
-			PreparedStatement insertarValores = conect.prepareStatement(insertar);
+			PreparedStatement insertarValores = conexionActual.prepareStatement(insertar);
 			insertarValores.executeUpdate(insertar);
 			System.out.println("Se inserto correctamente la decoracion");
 		}
 		catch(SQLException e) {
 			System.out.println("No se pudo insertar la decoracion");
+		}		
+	}
+	
+	public static void imprimirStockArboles(Connection conexionActual) {
+		
+		String query = "SELECT SUM(cantidad) AS 'Cantidad de arboles' FROM arbol";
+		
+		try {
+			Statement consultaStock = conexionActual.createStatement();
+			ResultSet resultado = consultaStock.executeQuery(query);
+			while(resultado.next()) {				
+				System.out.println(resultado.getString("Cantidad de arboles"));
+			}			
 		}
+		catch(SQLException e) {
+			System.out.println("No se puede hacer la consulta");
+		}		
+	}
+	
+	public static void imprimirStockFlores(Connection conexionActual) {
+		
+		String query = "SELECT SUM(cantidad) AS 'Cantidad de flores' FROM flor";
+		
+		try {
+			Statement consultaStock = conexionActual.createStatement();
+			ResultSet resultado = consultaStock.executeQuery(query);
+			while(resultado.next()) {				
+				System.out.println(resultado.getString("Cantidad de flores"));
+			}			
+		}
+		catch(SQLException e) {
+			System.out.println("No se puede hacer la consulta");
+		}			
+	}
+	
+	public static void imprimirStockDecoraciones(Connection conexionActual) {
+		
+		String query = "SELECT SUM(cantidad) AS 'Cantidad de decoraciones' FROM decoracion";
+		
+		try {
+			Statement consultaStock = conexionActual.createStatement();
+			ResultSet resultado = consultaStock.executeQuery(query);
+			while(resultado.next()) {				
+				System.out.println(resultado.getString("Cantidad de decoraciones"));
+			}			
+		}
+		catch(SQLException e) {
+			System.out.println("No se puede hacer la consulta");
+		}	
 		
 	}
 	
