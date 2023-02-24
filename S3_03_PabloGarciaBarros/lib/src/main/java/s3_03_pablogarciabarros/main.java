@@ -656,5 +656,18 @@ public class main {
 
 	public static void calcularVentasTotal(Connection conexionActual) {
 		
+		String query = "SELECT SUM(p.precio * dc.cantidad) AS 'Total ganado' FROM productos AS p INNER JOIN detalle_comanda AS dc " +
+			"ON p.id_producto = dc.id_producto";
+		try {
+			Statement consulta = conexionActual.createStatement();
+			ResultSet resultado = consulta.executeQuery(query);
+			while(resultado.next()) {
+				System.out.println("En total ha ganado: " + resultado.getDouble(1) + "€");
+			}			
+		}
+		catch(SQLException e) {
+			System.out.println("No se puede hacer la consulta");
+		}
+		
 	}
 }
