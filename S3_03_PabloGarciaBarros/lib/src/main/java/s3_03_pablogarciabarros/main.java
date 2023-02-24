@@ -108,17 +108,15 @@ public class main {
 		
 		switch(entrada.nextInt()) {
 			case 1:
-				System.out.println("Retirar arbol");
 				retirarArbol(conexionActual);
 				break;
 				
 			case 2:
-				System.out.println("Retirar planta");
 				retirarFlor(conexionActual);
 				break;
 				
 			case 3:
-				System.out.println("Retirar decoracion");
+				retirarDecoracion(conexionActual);
 				break;
 			
 			case 0:
@@ -212,7 +210,7 @@ public class main {
 			 break;
 		 
 		 case 4:
-			 crearTicket();
+			 crearTicket(conexionActual);
 			 break;
 			 
 		 case 5:
@@ -256,18 +254,17 @@ public class main {
 		String usarDB = "USE " + nombreDB;
 		
 		String crearTablaTipoProducto = "CREATE TABLE tipo_producto(id_tipo_producto INT PRIMARY KEY, descripcion VARCHAR(20))";
-		String crearTablaProductos = "CREATE TABLE productos(id_producto INT AUTO_INCREMENT PRIMARY KEY, id_tipo_producto INT NOT NULL,"
-				+ "precio DOUBLE NOT NULL, FOREIGN KEY(id_tipo_producto) REFERENCES tipo_producto(id_tipo_producto))";
-		String crearTablaArbol = "CREATE TABLE arbol(id_arbol INT AUTO_INCREMENT PRIMARY KEY, altura DOUBLE NOT NULL, "
-				+ "precio DOUBLE NOT NULL, cantidad INT NOT NULL)";
-		String crearTablaFlor = "CREATE TABLE flor(id_flor INT AUTO_INCREMENT PRIMARY KEY, color VARCHAR(20) NOT NULL, "
-				+ "precio DOUBLE NOT NULL, cantidad INT NOT NULL)";
-		String crearTablaDecoracion = "CREATE TABLE decoracion(id_decoracion INT AUTO_INCREMENT PRIMARY KEY, material VARCHAR(20) NOT NULL, "
-				+ "precio DOUBLE NOT NULL, cantidad INT NOT NULL)";
-		String crearTablaComanda = "CREATE TABLE comandas(id_comanda INT NOT NULL AUTO_INCREMENT PRIMARY KEY, Dia DATE NOT NULL)";
+		String crearTablaProductos = "CREATE TABLE productos(id_producto INT UNIQUE PRIMARY KEY, id_tipo_producto INT NOT NULL,"
+			+ "cantidad INT NOT NULL, precio DOUBLE NOT NULL, FOREIGN KEY(id_tipo_producto) REFERENCES tipo_producto(id_tipo_producto))";
+		String crearTablaArbol = "CREATE TABLE arbol(id_arbol INT UNIQUE PRIMARY KEY, altura DOUBLE NOT NULL, "
+			+ "precio DOUBLE NOT NULL, cantidad INT NOT NULL)";
+		String crearTablaFlor = "CREATE TABLE flor(id_flor INT UNIQUE PRIMARY KEY, color VARCHAR(20) NOT NULL, "
+			+ "precio DOUBLE NOT NULL, cantidad INT NOT NULL)";
+		String crearTablaDecoracion = "CREATE TABLE decoracion(id_decoracion INT UNIQUE PRIMARY KEY, material VARCHAR(20) NOT NULL, "
+			+ "precio DOUBLE NOT NULL, cantidad INT NOT NULL)";
+		String crearTablaComanda = "CREATE TABLE comandas(id_comanda INT NOT NULL PRIMARY KEY, Dia DATE NOT NULL)";
 		String crearTablaDetalleComanda = "CREATE TABLE detalle_comanda(id_comanda INT NOT NULL, id_producto INT, cantidad INT,"
-				+ "FOREIGN KEY(id_comanda) REFERENCES comandas(id_comanda), FOREIGN KEY(id_producto) REFERENCES productos(id_producto))";
-		
+			+ "FOREIGN KEY(id_comanda) REFERENCES comandas(id_comanda), FOREIGN KEY(id_producto) REFERENCES productos(id_producto))";
 		
 			ConexionBaseDatos conexion = new ConexionBaseDatos();
 			Connection conect = conexion.conectarNuevaBD();
@@ -332,6 +329,8 @@ public class main {
 	//Creo el Query que va a servir para insertarDato. Paso como paramentro el objeto del tipo Connection
 	public static void insertarArbol(Connection conexionActual) {
 		
+		System.out.println("Ingrese el id del producto");
+		int id = entrada.nextInt();
 		System.out.println("Ingrese la altura del arbol");
 		double altura = entrada.nextDouble();
 		System.out.println("Ingrese el precio del arbol");
@@ -339,10 +338,13 @@ public class main {
 		System.out.println("Ingrese la cantidad de arboles");
 		int cantidad = entrada.nextInt();
 		
-		String insertar = "INSERT INTO arbol(altura, precio, cantidad) VALUES(" + altura + "," + precio + "," + cantidad +")";		
+		String insertar = "INSERT INTO arbol(id_arbol, altura, precio, cantidad) VALUES(" + id + "," + altura + "," + precio + 
+			"," + cantidad +")";		
 		insertarDato(insertar, conexionActual);
 		
-		String insertarProducto = "INSERT INTO productos(id_tipo_producto, precio) VALUES(1, " + precio + ")";		
+		String insertarProducto = "INSERT INTO productos(id_producto, id_tipo_producto, cantidad, precio) VALUES(" + id + ", 1, " + cantidad + "," + 
+			precio + ")";
+		System.out.println(insertarProducto);
 		insertarDato(insertarProducto, conexionActual);
 	}
 	
@@ -350,6 +352,8 @@ public class main {
 	//Creo el Query que va a servir para insertarDato. Paso como paramentro el objeto del tipo Connection
 	public static void insertarFlor(Connection conexionActual) {
 		
+		System.out.println("Ingrese el id de producto");
+		int id = entrada.nextInt();
 		System.out.println("Ingrese el color de la flor");
 		String color = entrada.next();
 		System.out.println("Ingrese el precio de la flor");
@@ -357,9 +361,11 @@ public class main {
 		System.out.println("Ingrese la cantidad de flores");
 		int cantidad = entrada.nextInt();
 		
-		String insertar = "INSERT INTO flor(color, precio, cantidad) VALUES('" + color + "'," + precio + "," + cantidad +")";
-		insertarDato(insertar, conexionActual);
-		String insertarProducto = "INSERT INTO productos(id_tipo_producto, precio) VALUES(2, " + precio + ")";		
+		String insertar = "INSERT INTO flor(id_flor, color, precio, cantidad) VALUES(" + id + ",'" + color + "'," + precio + "," + 
+			cantidad +")";
+		insertarDato(insertar, conexionActual); 
+		String insertarProducto = "INSERT INTO productos(id_producto, id_tipo_producto, cantidad, precio) VALUES(" + id + ", 2, " + 
+			cantidad + ", " + precio + ")";		
 		insertarDato(insertarProducto, conexionActual);
 	}
 	
@@ -367,6 +373,8 @@ public class main {
 	//Creo el Query que va a servir para insertarDato. Paso como paramentro el objeto del tipo Connection
 	public static void insertarDecoracion(Connection conexionActual) {
 		
+		System.out.println("Ingrese el id del producto");
+		int id = entrada.nextInt();
 		System.out.println("Ingrese el material de la decoracion");
 		String tipoMaterial = entrada.next();
 		System.out.println("Ingrese el precio de la decoracion");
@@ -374,10 +382,11 @@ public class main {
 		System.out.println("Ingrese la cantidad de decoraciones");
 		int cantidad = entrada.nextInt();
 		
-		String insertar = "INSERT INTO decoracion(material, precio, cantidad) VALUES('" + tipoMaterial 
+		String insertar = "INSERT INTO decoracion(id_decoracion, material, precio, cantidad) VALUES(" + id + ",'" + tipoMaterial 
 			+ "'," + precio + "," + cantidad +")";
 		insertarDato(insertar, conexionActual);
-		String insertarTipoProducto = "INSERT INTO productos(id_tipo_producto, precio) VALUES(3, " + precio + ")";		
+		String insertarTipoProducto = "INSERT INTO productos(id_producto, id_tipo_producto, cantidad, precio) VALUES(" + id +", 3, " 
+			+ cantidad + ", " +	precio + ")";		
 		insertarDato(insertarTipoProducto, conexionActual);
 	}
 	
@@ -514,11 +523,10 @@ public class main {
 			
 			while(resultado.next()) {
 				return resultado.getInt(1);
-			}
-			
+			}			
 		}
 		catch(SQLException e) {
-			System.out.println("No se puede hacer la consulta - cantidad");
+			System.out.println("No se puede hacer la consulta");
 		}
 		
 		return cantidad;
@@ -539,14 +547,63 @@ public class main {
 		}
 		else {
 			System.out.println("No se puede retirar mas de lo que se tiene en stock");
-		}
-		
-		
-		
+		}		
 	}
 	
 	//
-	public static void crearTicket() {
-		System.out.println("Creo ticket nuevo");
+	public static void crearTicket(Connection conexionActual) {
+	
+		int idProd;
+		int cant;
+		String continuar = "n";
+		System.out.println("Inserte el nro de la comanda");
+		int idComanda = entrada.nextInt();
+		String query = "INSERT INTO comandas(id_comanda, Dia) VALUES(" + idComanda + ", '2022-10-21')";
+		
+		insertarDato(query, conexionActual);
+		
+		do {
+			System.out.println("Ingrese el id del producto");
+			idProd = entrada.nextInt();
+			
+			System.out.println("Ingrese la cantidad");
+			cant = entrada.nextInt();
+			
+			query = "INSERT INTO detalle_comanda(id_comanda, id_producto, cantidad) VALUES(" + idComanda + ", " + idProd + ", " 
+				+ cant + ")";
+			
+			insertarDato(query, conexionActual);
+			
+			System.out.println("Quiere ingresar mas productos?(S/N)");
+			continuar = entrada.next();
+		}while(continuar.equalsIgnoreCase("s"));
+		
+
+		actualizarStock(conexionActual, idProd, cant);
+		precioFinalComanda(conexionActual, idComanda);
+	}
+
+	
+	public static void precioFinalComanda(Connection conexionActual, int idComanda) {
+		
+		String query = "SELECT SUM(p.precio * dc.cantidad) AS 'Precio final' FROM productos AS p INNER JOIN detalle_comanda AS dc " +
+			"ON p.id_producto = dc.id_producto INNER JOIN comandas AS c ON dc.id_comanda = c.id_comanda WHERE c.id_comanda =" 
+			+ idComanda;	
+		
+		try {
+			Statement consulta = conexionActual.createStatement();
+			ResultSet resultado = consulta.executeQuery(query);
+			while(resultado.next()) {
+				System.out.println("El precio final de la comanda es: " + resultado.getInt(1) + "€");
+			}
+		}
+		catch(SQLException e){
+			System.out.println("No se puede hacer la consulta");
+		}		
+	}
+	
+	
+	public static void actualizarStock(Connection conexionActual, int idProd, int cant) {	
+		
 	}
 }
