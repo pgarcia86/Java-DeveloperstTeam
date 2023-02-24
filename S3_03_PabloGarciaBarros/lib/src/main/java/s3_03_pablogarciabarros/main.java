@@ -1,12 +1,10 @@
 package s3_03_pablogarciabarros;
 
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Scanner;
 
 public class main {
@@ -59,6 +57,7 @@ public class main {
 			"\n3. Imprimir stock" +
 			"\n4. Crear ticket de venta" +
 			"\n5. Mostrar historico de ventas" +
+			"\n6. Calcular total de ventas" +
 			"\n0. Salir de la aplicacion");	
 		
 		return entrada.nextInt();
@@ -140,17 +139,14 @@ public class main {
 		
 		switch(entrada.nextInt()) {				
 			case 1:
-				System.out.println("Imprimir stock de arboles");
 				imprimirStockArboles(conexionActual);
 				break;
 				
 			case 2:
-				System.out.println("Imprimir stock de flores");
 				imprimirStockFlores(conexionActual);
 				break;
 				
 			case 3:
-				System.out.println("Imprimir stock de decoraciones");
 				imprimirStockDecoraciones(conexionActual);
 				break;
 				
@@ -210,7 +206,11 @@ public class main {
 			 break;
 			 
 		 case 5:
+			 historicoVentas(conexionActual);
+			 break;
 			 
+		 case 6: 
+			 calcularVentasTotal(conexionActual);
 			 break;
 			 
 		 case 0:
@@ -233,8 +233,7 @@ public class main {
 		ConexionBaseDatos conexion = new ConexionBaseDatos();
 		Connection conect = conexion.conectarDB(nombreDB);	
 		
-		return conect;
-		
+		return conect;		
 	}
 	
 	
@@ -266,26 +265,16 @@ public class main {
 			Connection conect = conexion.conectarNuevaBD();
 			
 		try {
-			Statement borrar = conect.createStatement();
-			borrar.execute(borrarDB);	//Ejecuto la sentencia que elimina la DB
-			Statement sqlQuery = conect.createStatement();
-			sqlQuery.execute(query);	//Ejecuto la sentencia que crea la DB
-			Statement usar = conect.createStatement();
-			usar.execute(usarDB);
-			PreparedStatement crearTabla1 = conect.prepareStatement(crearTablaTipoProducto);
-			crearTabla1.execute();
-			PreparedStatement crearTabla2 = conect.prepareStatement(crearTablaProductos);
-			crearTabla2.execute();
-			PreparedStatement crearTabla3 = conect.prepareStatement(crearTablaArbol);
-			crearTabla3.execute();
-			PreparedStatement crearTabla4 = conect.prepareStatement(crearTablaFlor);
-			crearTabla4.execute();
-			PreparedStatement crearTabla5 = conect.prepareStatement(crearTablaDecoracion);
-			crearTabla5.execute();
-			PreparedStatement crearTabla6 = conect.prepareStatement(crearTablaComanda);
-			crearTabla6.execute();
-			PreparedStatement crearTabla7 = conect.prepareStatement(crearTablaDetalleComanda);
-			crearTabla7.execute();
+			conect.createStatement().execute(borrarDB);
+			conect.createStatement().execute(query);			
+			conect.createStatement().execute(usarDB);
+			conect.prepareStatement(crearTablaTipoProducto).execute();
+			conect.prepareStatement(crearTablaProductos).execute();			
+			conect.prepareStatement(crearTablaArbol).execute();
+			conect.prepareStatement(crearTablaFlor).execute();
+			conect.prepareStatement(crearTablaDecoracion).execute();
+			conect.prepareStatement(crearTablaComanda).execute();
+			conect.prepareStatement(crearTablaDetalleComanda).execute();
 			insertarTipoProducto(conect);
 			System.out.println("Se creo la base de datos");
 		}
@@ -391,7 +380,6 @@ public class main {
 		try {
 			PreparedStatement insertarValores = conexionActual.prepareStatement(insertar);
 			insertarValores.executeUpdate(insertar);
-			System.out.println("Se inserto correctamente");
 		}
 		catch(SQLException e) {
 			System.out.println("No se pudo insertar");
@@ -554,7 +542,13 @@ public class main {
 		String continuar = "n";
 		System.out.println("Inserte el nro de la comanda");
 		int idComanda = entrada.nextInt();
-		String query = "INSERT INTO comandas(id_comanda, Dia) VALUES(" + idComanda + ", '2022-10-21')";
+		System.out.println("Ingrese el año de la comanda");
+		String anyo = entrada.next();
+		System.out.println("Ingrese el mes de la comanda");
+		String mes = entrada.next();
+		System.out.println("Ingrese el dia de la comanda");
+		String dia = entrada.next();
+		String query = "INSERT INTO comandas(id_comanda, Dia) VALUES(" + idComanda + ", '" + anyo + "-" + mes + "-" + dia + "')";
 		
 		insertarDato(query, conexionActual);
 		
@@ -625,5 +619,42 @@ public class main {
 		catch(SQLException e) {
 			System.out.println("No se puede actualizar el stock");
 		}
+	}
+
+	
+	public static void historicoVentas(Connection conexionActual) {
+		
+		System.out.println("Ingrese el año de comienzo de la consulta");
+		String anyoComienzo = entrada.next();
+		System.out.println("Ingrese el mes de comienzo de la consulta");
+		String mesComienzo = entrada.next();
+		System.out.println("Ingrese el dia de comienzo de la consulta");
+		String diaComienzo = entrada.next();
+		
+		System.out.println("Ingrese el año de final de la consulta");
+		String anyoFinal = entrada.next();
+		System.out.println("Ingrese el mes de final de la consulta");
+		String mesFinal = entrada.next();
+		System.out.println("Ingrese el dia de final de la consulta");
+		String diaFinal = entrada.next();
+		
+		String query = "SELECT * FROM comandas AS c WHERE c.Dia >= '" + anyoComienzo + "-" + mesComienzo + "-" + diaComienzo + 
+			"' AND c.Dia <= '" + anyoFinal + "-" + mesFinal + "-" + diaFinal + "'";
+		
+		try {
+			Statement consulta = conexionActual.createStatement();
+			ResultSet resultado = consulta.executeQuery(query);
+			while(resultado.next()) {
+				System.out.println("ID Comanda: " + resultado.getString(1) + " - Fecha: " + resultado.getString(2));
+			}
+		}
+		catch(SQLException e) {
+			System.out.println("No se puede hacer la consulta");
+		}		
+	}
+
+
+	public static void calcularVentasTotal(Connection conexionActual) {
+		
 	}
 }
