@@ -58,6 +58,7 @@ public class main {
 			"\n4. Crear ticket de venta" +
 			"\n5. Mostrar historico de ventas" +
 			"\n6. Calcular total de ventas" +
+			"\n7. Calcular total del valor del stock" +
 			"\n0. Salir de la aplicacion");	
 		
 		return entrada.nextInt();
@@ -211,6 +212,10 @@ public class main {
 			 
 		 case 6: 
 			 calcularVentasTotal(conexionActual);
+			 break;
+			 
+		 case 7:
+			 calcularValorTotalStock(conexionActual);
 			 break;
 			 
 		 case 0:
@@ -394,7 +399,9 @@ public class main {
 	
 		String columna = "Cantidad de arboles";
 		
-		imprimirStock(conexionActual, query, columna);			
+		String producto = "arboles";
+		
+		imprimirStock(conexionActual, query, columna, producto);			
 	}
 	
 	
@@ -405,7 +412,9 @@ public class main {
 
 		String columna = "Cantidad de flores";
 		
-		imprimirStock(conexionActual, query, columna);			
+		String producto = "flores";
+		
+		imprimirStock(conexionActual, query, columna, producto);			
 
 	}
 	
@@ -417,17 +426,19 @@ public class main {
 		
 		String columna = "Cantidad de decoraciones";
 		
-		imprimirStock(conexionActual, query, columna);			
+		String producto = "decoraciones";
+		
+		imprimirStock(conexionActual, query, columna, producto);			
 	}
 	
 	
-	public static void imprimirStock(Connection conexionActual, String query, String columna) {
+	public static void imprimirStock(Connection conexionActual, String query, String columna, String producto) {
 		
 		try {
 			Statement consultaStock = conexionActual.createStatement();
 			ResultSet resultado = consultaStock.executeQuery(query);
 			while(resultado.next()) {				
-				System.out.println("Hay en stock: " + resultado.getString(columna));
+				System.out.println("Hay en stock: " + resultado.getString(columna) + " " + producto + "\n");
 			}			
 		}
 		catch(SQLException e) {
@@ -583,7 +594,7 @@ public class main {
 			Statement consulta = conexionActual.createStatement();
 			ResultSet resultado = consulta.executeQuery(query);
 			while(resultado.next()) {
-				System.out.println("El precio final de la comanda es: " + resultado.getInt(1) + "€");
+				System.out.println("El precio final de la comanda es: " + resultado.getInt(1) + "€\n");
 			}
 		}
 		catch(SQLException e){
@@ -662,12 +673,29 @@ public class main {
 			Statement consulta = conexionActual.createStatement();
 			ResultSet resultado = consulta.executeQuery(query);
 			while(resultado.next()) {
-				System.out.println("En total ha ganado: " + resultado.getDouble(1) + "€");
+				System.out.println("En total ha ganado: " + resultado.getDouble(1) + "€\n");
+			}			
+		}
+		catch(SQLException e) {
+			System.out.println("No se puede hacer la consulta");
+		}		
+	}
+
+	
+	public static void calcularValorTotalStock(Connection conexionActual) {
+		
+		String query = "SELECT SUM(p.precio * p.cantidad) AS 'Total valor stock' FROM productos AS p";
+		
+		try {
+			Statement consulta = conexionActual.createStatement();
+			ResultSet resultado = consulta.executeQuery(query);
+			while(resultado.next()) {
+				System.out.println("El valor total del stock es: " + resultado.getDouble(1) + "€\n");
 			}			
 		}
 		catch(SQLException e) {
 			System.out.println("No se puede hacer la consulta");
 		}
-		
 	}
+
 }
