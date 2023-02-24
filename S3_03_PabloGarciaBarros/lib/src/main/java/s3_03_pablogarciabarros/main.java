@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class main {
@@ -132,28 +133,23 @@ public class main {
 	public static void menuImprimirStock(Connection conexionActual) {
 		
 		System.out.println("INGRESE LA OPCION DESEADA: " +
-			"\n1. Imprimir stock total" +
-			"\n2. Imprimir stock de arboles" +
-			"\n3. Imprimir stock de plantas" +
-			"\n4. Imprimir stock de decoraciones" +
+			"\n1. Imprimir stock de arboles" +
+			"\n2. Imprimir stock de plantas" +
+			"\n3. Imprimir stock de decoraciones" +
 			"\n0. Volver al menu anterior");
 		
-		switch(entrada.nextInt()) {
+		switch(entrada.nextInt()) {				
 			case 1:
-				System.out.println("Imprimir stock");
-				break;
-				
-			case 2:
 				System.out.println("Imprimir stock de arboles");
 				imprimirStockArboles(conexionActual);
 				break;
 				
-			case 3:
+			case 2:
 				System.out.println("Imprimir stock de flores");
 				imprimirStockFlores(conexionActual);
 				break;
 				
-			case 4:
+			case 3:
 				System.out.println("Imprimir stock de decoraciones");
 				imprimirStockDecoraciones(conexionActual);
 				break;
@@ -214,7 +210,7 @@ public class main {
 			 break;
 			 
 		 case 5:
-			 menuHistoricoVentas();
+			 
 			 break;
 			 
 		 case 0:
@@ -257,11 +253,11 @@ public class main {
 		String crearTablaProductos = "CREATE TABLE productos(id_producto INT UNIQUE PRIMARY KEY, id_tipo_producto INT NOT NULL,"
 			+ "cantidad INT NOT NULL, precio DOUBLE NOT NULL, FOREIGN KEY(id_tipo_producto) REFERENCES tipo_producto(id_tipo_producto))";
 		String crearTablaArbol = "CREATE TABLE arbol(id_arbol INT UNIQUE PRIMARY KEY, altura DOUBLE NOT NULL, "
-			+ "precio DOUBLE NOT NULL, cantidad INT NOT NULL)";
+			+ "precio DOUBLE NOT NULL, cantidad INT NOT NULL, id_tipo INT NOT NULL, FOREIGN KEY(id_tipo) REFERENCES tipo_producto(id_tipo_producto))";
 		String crearTablaFlor = "CREATE TABLE flor(id_flor INT UNIQUE PRIMARY KEY, color VARCHAR(20) NOT NULL, "
-			+ "precio DOUBLE NOT NULL, cantidad INT NOT NULL)";
+			+ "precio DOUBLE NOT NULL, cantidad INT NOT NULL, id_tipo INT NOT NULL, FOREIGN KEY(id_tipo) REFERENCES tipo_producto(id_tipo_producto))";
 		String crearTablaDecoracion = "CREATE TABLE decoracion(id_decoracion INT UNIQUE PRIMARY KEY, material VARCHAR(20) NOT NULL, "
-			+ "precio DOUBLE NOT NULL, cantidad INT NOT NULL)";
+			+ "precio DOUBLE NOT NULL, cantidad INT NOT NULL, id_tipo INT NOT NULL, FOREIGN KEY(id_tipo) REFERENCES tipo_producto(id_tipo_producto))";
 		String crearTablaComanda = "CREATE TABLE comandas(id_comanda INT NOT NULL PRIMARY KEY, Dia DATE NOT NULL)";
 		String crearTablaDetalleComanda = "CREATE TABLE detalle_comanda(id_comanda INT NOT NULL, id_producto INT, cantidad INT,"
 			+ "FOREIGN KEY(id_comanda) REFERENCES comandas(id_comanda), FOREIGN KEY(id_producto) REFERENCES productos(id_producto))";
@@ -318,7 +314,6 @@ public class main {
 					+ "VALUES(3, 'Decoracion')");
 			insertarValores3.executeUpdate("INSERT INTO tipo_producto(id_tipo_producto, descripcion) "
 					+ "VALUES(3, 'Decoracion')");
-			System.out.println("Se creo correctamente");
 		}
 		catch(SQLException e) {
 			System.out.println("No se pudo crear");
@@ -338,13 +333,12 @@ public class main {
 		System.out.println("Ingrese la cantidad de arboles");
 		int cantidad = entrada.nextInt();
 		
-		String insertar = "INSERT INTO arbol(id_arbol, altura, precio, cantidad) VALUES(" + id + "," + altura + "," + precio + 
-			"," + cantidad +")";		
+		String insertar = "INSERT INTO arbol(id_arbol, altura, precio, cantidad, id_tipo) VALUES(" + id + "," + altura + "," + precio + 
+			"," + cantidad +", 1)";		
 		insertarDato(insertar, conexionActual);
 		
 		String insertarProducto = "INSERT INTO productos(id_producto, id_tipo_producto, cantidad, precio) VALUES(" + id + ", 1, " + cantidad + "," + 
 			precio + ")";
-		System.out.println(insertarProducto);
 		insertarDato(insertarProducto, conexionActual);
 	}
 	
@@ -361,8 +355,8 @@ public class main {
 		System.out.println("Ingrese la cantidad de flores");
 		int cantidad = entrada.nextInt();
 		
-		String insertar = "INSERT INTO flor(id_flor, color, precio, cantidad) VALUES(" + id + ",'" + color + "'," + precio + "," + 
-			cantidad +")";
+		String insertar = "INSERT INTO flor(id_flor, color, precio, cantidad, id_tipo) VALUES(" + id + ",'" + color + "'," + precio + "," + 
+			cantidad +", 2)";
 		insertarDato(insertar, conexionActual); 
 		String insertarProducto = "INSERT INTO productos(id_producto, id_tipo_producto, cantidad, precio) VALUES(" + id + ", 2, " + 
 			cantidad + ", " + precio + ")";		
@@ -382,8 +376,8 @@ public class main {
 		System.out.println("Ingrese la cantidad de decoraciones");
 		int cantidad = entrada.nextInt();
 		
-		String insertar = "INSERT INTO decoracion(id_decoracion, material, precio, cantidad) VALUES(" + id + ",'" + tipoMaterial 
-			+ "'," + precio + "," + cantidad +")";
+		String insertar = "INSERT INTO decoracion(id_decoracion, material, precio, cantidad, id_tipo) VALUES(" + id + ",'" + tipoMaterial 
+			+ "'," + precio + "," + cantidad +", 3)";
 		insertarDato(insertar, conexionActual);
 		String insertarTipoProducto = "INSERT INTO productos(id_producto, id_tipo_producto, cantidad, precio) VALUES(" + id +", 3, " 
 			+ cantidad + ", " +	precio + ")";		
@@ -409,17 +403,10 @@ public class main {
 	public static void imprimirStockArboles(Connection conexionActual) {
 		
 		String query = "SELECT SUM(cantidad) AS 'Cantidad de arboles' FROM arbol";
+	
+		String columna = "Cantidad de arboles";
 		
-		try {
-			Statement consultaStock = conexionActual.createStatement();
-			ResultSet resultado = consultaStock.executeQuery(query);
-			while(resultado.next()) {				
-				System.out.println("Hay en stock: " + resultado.getString("Cantidad de arboles"));
-			}			
-		}
-		catch(SQLException e) {
-			System.out.println("No se puede hacer la consulta");
-		}		
+		imprimirStock(conexionActual, query, columna);			
 	}
 	
 	
@@ -427,17 +414,11 @@ public class main {
 	public static void imprimirStockFlores(Connection conexionActual) {
 		
 		String query = "SELECT SUM(cantidad) AS 'Cantidad de flores' FROM flor";
+
+		String columna = "Cantidad de flores";
 		
-		try {
-			Statement consultaStock = conexionActual.createStatement();
-			ResultSet resultado = consultaStock.executeQuery(query);
-			while(resultado.next()) {				
-				System.out.println("Hay en stock: " + resultado.getString("Cantidad de flores"));
-			}			
-		}
-		catch(SQLException e) {
-			System.out.println("No se puede hacer la consulta");
-		}			
+		imprimirStock(conexionActual, query, columna);			
+
 	}
 	
 	
@@ -446,16 +427,24 @@ public class main {
 		
 		String query = "SELECT SUM(cantidad) AS 'Cantidad de decoraciones' FROM decoracion";
 		
+		String columna = "Cantidad de decoraciones";
+		
+		imprimirStock(conexionActual, query, columna);			
+	}
+	
+	
+	public static void imprimirStock(Connection conexionActual, String query, String columna) {
+		
 		try {
 			Statement consultaStock = conexionActual.createStatement();
 			ResultSet resultado = consultaStock.executeQuery(query);
 			while(resultado.next()) {				
-				System.out.println("Hay en stock: " + resultado.getString("Cantidad de decoraciones"));
+				System.out.println("Hay en stock: " + resultado.getString(columna));
 			}			
 		}
 		catch(SQLException e) {
 			System.out.println("No se puede hacer la consulta");
-		}			
+		}
 	}
 	
 	
@@ -468,12 +457,15 @@ public class main {
 		int cantRetiro = entrada.nextInt();
 		
 		String query = "SELECT cantidad FROM arbol WHERE id_arbol = " + idProdRetiro;
+		String queryProducto = "UPDATE productos SET cantidad = (cantidad - " + cantRetiro + ") WHERE id_producto = " + idProdRetiro;
+
 		
 		int stock = obtenerCantidad(conexionActual, query);
 		
 		query = "UPDATE arbol SET cantidad = (cantidad - " + cantRetiro + ") WHERE id_arbol = " + idProdRetiro;
 		
 		retirarProducto(conexionActual, query, cantRetiro, stock);
+		retirarProducto(conexionActual, queryProducto, cantRetiro, stock);
 	} 
 	
 	
@@ -486,12 +478,15 @@ public class main {
 		int cantRetiro = entrada.nextInt();
 		
 		String query = "SELECT cantidad FROM flor WHERE id_flor = " + idProdRetiro;
+		String queryProducto = "UPDATE productos SET cantidad = (cantidad - " + cantRetiro + ") WHERE id_producto = " + idProdRetiro;
+
 		
 		int stock = obtenerCantidad(conexionActual, query);
 		
 		query = "UPDATE flor SET cantidad = (cantidad - " + cantRetiro + ") WHERE id_flor = " + idProdRetiro;
 		
-		retirarProducto(conexionActual, query, cantRetiro, stock);			
+		retirarProducto(conexionActual, query, cantRetiro, stock);	
+		retirarProducto(conexionActual, queryProducto, cantRetiro, stock);
 	}
 	
 	
@@ -504,12 +499,14 @@ public class main {
 		int cantRetiro = entrada.nextInt();
 		
 		String query = "SELECT cantidad FROM decoracion WHERE id_decoracion = " + idProdRetiro;
+		String queryProducto = "UPDATE productos SET cantidad = (cantidad - " + cantRetiro + ") WHERE id_producto = " + idProdRetiro;
 		
 		int stock = obtenerCantidad(conexionActual, query); 
 		
 		query = "UPDATE decoracion SET cantidad = (cantidad - " + cantRetiro + ") WHERE id_decoracion = " + idProdRetiro;
 		
 		retirarProducto(conexionActual, query, cantRetiro, stock);
+		retirarProducto(conexionActual, queryProducto, cantRetiro, stock);
 	}
 	
 	
@@ -539,7 +536,6 @@ public class main {
 			try {
 				PreparedStatement consulta = conexionActual.prepareStatement(query);
 				consulta.executeUpdate(query);
-				System.out.println("Se actualizo la cantidad");
 			}
 			catch(SQLException e) {
 				System.out.println("No se puede hacer la consulta");
@@ -576,10 +572,9 @@ public class main {
 			
 			System.out.println("Quiere ingresar mas productos?(S/N)");
 			continuar = entrada.next();
-		}while(continuar.equalsIgnoreCase("s"));
-		
-
-		actualizarStock(conexionActual, idProd, cant);
+			actualizarStock(conexionActual, idProd, cant, idComanda);
+			
+		}while(continuar.equalsIgnoreCase("s"));			
 		precioFinalComanda(conexionActual, idComanda);
 	}
 
@@ -603,7 +598,32 @@ public class main {
 	}
 	
 	
-	public static void actualizarStock(Connection conexionActual, int idProd, int cant) {	
+	public static void actualizarStock(Connection conexionActual, int idProd, int cant, int idComanda) {
 		
+		String query;
+		String queryUpdate;
+		String queryTipoProducto;
+		String tipoProducto;
+		String queryRetiroTipoProducto;
+		int stock;
+		query = "SELECT cantidad FROM productos WHERE id_producto = " + idProd;
+		stock = obtenerCantidad(conexionActual, query);
+		queryUpdate = "UPDATE productos SET cantidad = (cantidad - " + cant + ") WHERE id_producto = " + idProd;
+		retirarProducto(conexionActual, queryUpdate, cant, stock);
+		queryTipoProducto = "SELECT descripcion FROM tipo_producto AS tp INNER JOIN productos AS p " +
+			"ON tp.id_tipo_producto = p.id_tipo_producto WHERE p.id_producto = " + idProd;
+		try {
+			Statement consulta = conexionActual.createStatement();
+			ResultSet resultado = consulta.executeQuery(queryTipoProducto);
+			while(resultado.next()) {
+				tipoProducto = resultado.getString(1).toLowerCase();
+				queryRetiroTipoProducto = "UPDATE " + tipoProducto + " SET cantidad = (cantidad - " + cant +
+					") WHERE id_" + tipoProducto + " = " + idProd;
+				retirarProducto(conexionActual, queryRetiroTipoProducto, cant, stock);
+			}
+		}
+		catch(SQLException e) {
+			System.out.println("No se puede actualizar el stock");
+		}
 	}
 }
