@@ -1,6 +1,7 @@
 package s3_03_pablogarciabarros;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,8 +20,11 @@ public class main {
 		// TODO Auto-generated method stub
 		
 		int opcion;
+		Connection conexionActual = null;
 		
-		Connection conexionActual = primerMenu();
+		do {
+		conexionActual = primerMenu();
+		}while(conexionActual == null);
 		
 		do{
 			opcion = menuPrincipal();
@@ -94,7 +98,7 @@ public class main {
 		}		
 	}
 	
-	public static void menuRetirarProductos() {
+	public static void menuRetirarProductos(Connection conexionActual) {
 		
 		System.out.println("INGRESE LA OPCION DESEADA: " +
 			"\n1. Retirar arbol" +
@@ -105,10 +109,12 @@ public class main {
 		switch(entrada.nextInt()) {
 			case 1:
 				System.out.println("Retirar arbol");
+				retirarArbol(conexionActual);
 				break;
 				
 			case 2:
 				System.out.println("Retirar planta");
+				retirarFlor(conexionActual);
 				break;
 				
 			case 3:
@@ -198,7 +204,7 @@ public class main {
 			 break;
 		 
 		 case 2:
-			 menuRetirarProductos();
+			 menuRetirarProductos(conexionActual);
 			 break;
 			 
 		 case 3:
@@ -399,7 +405,7 @@ public class main {
 			Statement consultaStock = conexionActual.createStatement();
 			ResultSet resultado = consultaStock.executeQuery(query);
 			while(resultado.next()) {				
-				System.out.println(resultado.getString("Cantidad de arboles"));
+				System.out.println("Hay en stock: " + resultado.getString("Cantidad de arboles"));
 			}			
 		}
 		catch(SQLException e) {
@@ -417,7 +423,7 @@ public class main {
 			Statement consultaStock = conexionActual.createStatement();
 			ResultSet resultado = consultaStock.executeQuery(query);
 			while(resultado.next()) {				
-				System.out.println(resultado.getString("Cantidad de flores"));
+				System.out.println("Hay en stock: " + resultado.getString("Cantidad de flores"));
 			}			
 		}
 		catch(SQLException e) {
@@ -435,15 +441,109 @@ public class main {
 			Statement consultaStock = conexionActual.createStatement();
 			ResultSet resultado = consultaStock.executeQuery(query);
 			while(resultado.next()) {				
-				System.out.println(resultado.getString("Cantidad de decoraciones"));
+				System.out.println("Hay en stock: " + resultado.getString("Cantidad de decoraciones"));
 			}			
 		}
 		catch(SQLException e) {
 			System.out.println("No se puede hacer la consulta");
-		}	
-		
+		}			
 	}
 	
+	
+	public static void retirarArbol(Connection conexionActual) {
+		
+		System.out.println("Ingrese el id del arbol");
+		int idProdRetiro = entrada.nextInt();
+		
+		System.out.println("Ingrese la cantidad que desea retirar");
+		int cantRetiro = entrada.nextInt();
+		
+		String query = "SELECT cantidad FROM arbol WHERE id_arbol = " + idProdRetiro;
+		
+		int stock = obtenerCantidad(conexionActual, query);
+		
+		query = "UPDATE arbol SET cantidad = (cantidad - " + cantRetiro + ") WHERE id_arbol = " + idProdRetiro;
+		
+		retirarProducto(conexionActual, query, cantRetiro, stock);
+	} 
+	
+	
+	public static void retirarFlor(Connection conexionActual) {
+		
+		System.out.println("Ingrese el id de la flor");
+		int idProdRetiro = entrada.nextInt();
+		
+		System.out.println("Ingrese la cantidad que desea retirar");
+		int cantRetiro = entrada.nextInt();
+		
+		String query = "SELECT cantidad FROM flor WHERE id_flor = " + idProdRetiro;
+		
+		int stock = obtenerCantidad(conexionActual, query);
+		
+		query = "UPDATE flor SET cantidad = (cantidad - " + cantRetiro + ") WHERE id_flor = " + idProdRetiro;
+		
+		retirarProducto(conexionActual, query, cantRetiro, stock);			
+	}
+	
+	
+	public static void retirarDecoracion(Connection conexionActual) {
+		
+		System.out.println("Ingrese el id de la decoracion");
+		int idProdRetiro = entrada.nextInt();
+		
+		System.out.println("Ingrese la cantidad que desea retirar");
+		int cantRetiro = entrada.nextInt();
+		
+		String query = "SELECT cantidad FROM decoracion WHERE id_decoracion = " + idProdRetiro;
+		
+		int stock = obtenerCantidad(conexionActual, query); 
+		
+		query = "UPDATE decoracion SET cantidad = (cantidad - " + cantRetiro + ") WHERE id_decoracion = " + idProdRetiro;
+		
+		retirarProducto(conexionActual, query, cantRetiro, stock);
+	}
+	
+	
+	public static int obtenerCantidad(Connection conexionActual, String query) {
+		
+		int cantidad = 0;
+		
+		try {
+			Statement consulta = conexionActual.createStatement();
+			ResultSet resultado = consulta.executeQuery(query);
+			
+			while(resultado.next()) {
+				return resultado.getInt(1);
+			}
+			
+		}
+		catch(SQLException e) {
+			System.out.println("No se puede hacer la consulta - cantidad");
+		}
+		
+		return cantidad;
+	}
+	
+	
+	public static void retirarProducto(Connection conexionActual, String query, int cantRetiro, int stock) {
+				
+		if(cantRetiro < stock) {
+			try {
+				PreparedStatement consulta = conexionActual.prepareStatement(query);
+				consulta.executeUpdate(query);
+				System.out.println("Se actualizo la cantidad");
+			}
+			catch(SQLException e) {
+				System.out.println("No se puede hacer la consulta");
+			}
+		}
+		else {
+			System.out.println("No se puede retirar mas de lo que se tiene en stock");
+		}
+		
+		
+		
+	}
 	
 	//
 	public static void crearTicket() {
