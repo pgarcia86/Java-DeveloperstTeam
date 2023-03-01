@@ -171,8 +171,6 @@ public class main {
 			case 3:
 				query = "SELECT * FROM decoracion WHERE id_decoracion = " + id;
 				break;
-			default:
-				break;
 		}
 		datosProducto = queries.ejecutarQuery(conexion, query);
 		
