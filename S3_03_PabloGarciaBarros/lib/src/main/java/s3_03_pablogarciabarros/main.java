@@ -17,6 +17,7 @@ public class main {
 	
 	
 	public static void main(String[] args) {
+		// TODO Auto-generated method stub
 		
 		int opcion;
 		Connection conexion = null;
@@ -42,10 +43,10 @@ public class main {
 		int opcion = in.nextInt();
 		
 		if(opcion == 1) {
-			return ProductoraFabricas.getFabrica(5).creoConexion().conectarDB();
+			return conectarBaseDatos();
 		}
 		else if(opcion == 2) {
-			return ProductoraFabricas.getFabrica(5).creoConexion().conectarNuevaBD();
+			return crearFloristeria();
 		}
 		else {
 			return null;	
@@ -55,12 +56,12 @@ public class main {
 	
 	public static int menuPrincipal() {		
 		System.out.println("INGRESE LA OPCION DESEADA: " +
-			"\n1. Agregar un producto nuevo"	+
-			"\n2. Actulizar cantidad de productos ya existentes" +
-			"\n3. Retirar un producto" +
-			"\n4. Imprimir stock" +
-			"\n5. Crear ticket de venta" +
-			"\n6. Mostrar historico de ventas" +
+			"\n1. Agregar un producto"	+
+			"\n2. Retirar un producto" +
+			"\n3. Imprimir stock" +
+			"\n4. Crear ticket de venta" +
+			"\n5. Mostrar historico de ventas" +
+			"\n6. Calcular total de ventas" +
 			"\n7. Calcular total del valor del stock" +
 			"\n0. Salir de la aplicacion");	
 		
@@ -72,14 +73,10 @@ public class main {
 		
 		switch(opcion) {		 
 		 case 1:
-			 agregarProductoNuevo(conexion);
-			 break;
-			
-		 case 2:
-			 agregarProducto(conexion);
+			 agregarProductos(conexion);
 			 break;
 		 
-		 case 3:
+		 case 2:
 			 System.out.println("Ingrese el id del producto");
 			 int id = in.nextInt();
 			 System.out.println("Ingrese la cantidad a retirar");
@@ -87,20 +84,24 @@ public class main {
 			 retirarProducto(conexion, id, cantRetiro);
 			 break;
 			 
-		 case 4:
-			 menuImprimirStock(conexion);
+		 case 3:
+			 imprimirStock(conexion);
 			 break;
 		 
-		 case 5:
+		 case 4:
 			 crearTicket(conexion);
 			 break;
 			 
-		 case 6:
+		 case 5:
 			 menuHistoricoVentas(conexion);
 			 break;
 			 
-		 case 7: 
-			 calcularValorTotalStock(conexion);
+		 case 6: 
+			 //calcularVentasTotal(conexionActual);
+			 break;
+			 
+		 case 7:
+			 //calcularValorTotalStock(conexionActual);
 			 break;
 			 
 		 case 0:
@@ -114,7 +115,7 @@ public class main {
 	}	
 
 	
-	public static void agregarProductoNuevo(Connection conexion) {
+	public static void agregarProductos(Connection conexion) {
 		
 		System.out.println("INGRESE LA OPCION DESEADA: " +
 			"\n1. Agregar arbol" +
@@ -126,19 +127,19 @@ public class main {
 		
 		switch(opcion) {
 			case 1:
-				Arbol arbol = (Arbol)ProductoraFabricas.getFabrica(opcion).tipoProducto();
+				Arbol arbol = (Arbol)ProductoraFabricas.getFabrica(opcion).tipoProducto(0);
 				arbol.agregarProducto(conexion, 1);
 				arbol.agregarArbol(conexion);
 				break;
 				
 			case 2:
-				Flor flor = (Flor)ProductoraFabricas.getFabrica(opcion).tipoProducto();
+				Flor flor = (Flor)ProductoraFabricas.getFabrica(opcion).tipoProducto(0);
 				flor.agregarProducto(conexion, 2);
 				flor.agregarFlor(conexion);
 				break;
 				
 			case 3:
-				Decoracion decoracion = (Decoracion)ProductoraFabricas.getFabrica(opcion).tipoProducto();
+				Decoracion decoracion = (Decoracion)ProductoraFabricas.getFabrica(opcion).tipoProducto(0);
 				decoracion.agregarProducto(conexion, 3);
 				decoracion.agregarDecoracion(conexion);
 				break;
@@ -153,68 +154,8 @@ public class main {
 		}		
 	}
 		
-
-	public static void agregarProducto(Connection conexion) {
-		System.out.println("Ingrese el id del producto");
-		int id = in.nextInt();
-		System.out.println("Ingrese la cantidad a añadir");
-		int cant = in.nextInt();
-		
-		int tipoProd = buscarTipoProducto(conexion, id);
-		int idProdCargado = buscarProducto(conexion, id);
-		
-		if(idProdCargado == 0) {
-			System.out.println("El producto no esta cargado en la Base de Datos");
-		}
-		else {
-			queries.actualizar(conexion, "UPDATE productos SET cantidad = (cantidad + " + cant + ") WHERE id_producto = " + id);
-		}
-		
-		switch(tipoProd) {
-			case 1:
-				queries.actualizar(conexion, "UPDATE arbol SET cantidad = (cantidad + " + cant + ") WHERE id_arbol = " + id);
-				break;
-			case 2:
-				queries.actualizar(conexion, "UPDATE flor SET cantidad = (cantidad + " + cant + ") WHERE id_flor = " + id);
-				break;
-			case 3:
-				queries.actualizar(conexion, "UPDATE decoracion SET cantidad = (cantidad + " + cant + ") WHERE id_decoracion = " + id);
-				break;
-		}
-	}
 	
-	
-	public static int buscarProducto(Connection conexion, int id) {
-		
-		ResultSet resultado = queries.ejecutarQuery(conexion, "SELECT id_producto FROM productos WHERE id_producto = " + id); 
-		
-		try {
-			while(resultado.next()) {
-				return resultado.getInt(1);
-			}
-		} catch (SQLException e) {
-			System.out.println("ERROR");
-		}
-		return 0;
-	}
-
-	
-	public static int buscarTipoProducto(Connection conexion, int id) {
-		ResultSet producto;
-		int resultado = 0;
-		producto = queries.ejecutarQuery(conexion, "SELECT id_tipo_producto FROM productos WHERE id_producto = " + id);	
-		try {
-			while(producto.next()) {
-				return resultado = producto.getInt(1); 
-			}
-		} catch (SQLException e) {
-			System.out.println("ERROR");
-		}
-		return resultado;
-	}
-
-	
- 	public static boolean retirarProducto(Connection conexion, int id, int cantRetiro) {
+	public static void retirarProducto(Connection conexion, int id, int cantRetiro) {
 		
 		int tipoProducto = buscarTipoProducto(conexion, id); //En la posicion 1 del producto tengo el tipo del producto		
 		String query = "";
@@ -222,73 +163,94 @@ public class main {
 		
 		switch(tipoProducto) {
 			case 1:
-				datosProducto = queries.ejecutarQuery(conexion, "SELECT * FROM arbol WHERE id_arbol = " + id);
+				query = "SELECT * FROM arbol WHERE id_arbol = " + id; 
 				break;
 			case 2:
-				datosProducto = queries.ejecutarQuery(conexion, "SELECT * FROM flor WHERE id_flor = " + id);
+				query = "SELECT * FROM flor WHERE id_flor = " + id;
 				break;
 			case 3:
-				datosProducto = queries.ejecutarQuery(conexion, "SELECT * FROM decoracion WHERE id_decoracion = " + id);
+				query = "SELECT * FROM decoracion WHERE id_decoracion = " + id;
 				break;
 			default:
 				break;
-		}		
+		}
+		datosProducto = queries.ejecutarQuery(conexion, query);
 		
 		switch(tipoProducto) {
 			case 1:
-				return retirarArbol(conexion, datosProducto, id, cantRetiro);			
-			case 2:
-				return retirarFlor(conexion, datosProducto, id, cantRetiro);
-			case 3:
-				return retirarDecoracion(conexion, datosProducto, id, cantRetiro);
+				retirarArbol(conexion, datosProducto, id, cantRetiro);
+			break;
+			
+		case 2:
+			retirarFlor(conexion, datosProducto, id, cantRetiro);
+			break;
+		case 3:
+			retirarDecoracion(conexion, datosProducto, id, cantRetiro);	
+			break;
 		}
-		return false;
 	}
 	
 	
-	public static boolean retirarArbol(Connection conexion, ResultSet datosProducto, int id, int cantRetiro) {
+	public static void retirarArbol(Connection conexion, ResultSet datosProducto, int id, int cantRetiro) {
 		try {
 			while(datosProducto.next()) {											
 				Arbol arbol = new Arbol(datosProducto.getInt(1), datosProducto.getInt(4), datosProducto.getFloat(3), 
 						datosProducto.getFloat(2));
-				return arbol.retirarArbol(conexion, id, cantRetiro);					
+				arbol.retirarArbol(conexion, id, cantRetiro);					
 			}					
 		} catch (SQLException e) {
 			System.out.println("No se puede retirar el arbol");
 		}
-		return false;
+		
 	}
 	
 	
-	public static boolean retirarFlor(Connection conexion, ResultSet datosProducto, int id, int cantRetiro) {
+	public static void retirarFlor(Connection conexion, ResultSet datosProducto, int id, int cantRetiro) {
 		try {
 			while(datosProducto.next()) {										
 				Flor flor = new Flor(datosProducto.getInt(1), datosProducto.getInt(4), datosProducto.getFloat(3), 
 						datosProducto.getString(2));
-				return flor.retirarFlor(conexion, id, cantRetiro);					
+				flor.retirarFlor(conexion, id, cantRetiro);					
 			}				
 		} catch (SQLException e) {
 			System.out.println("No se puede retirar la flor");			
 		}
-		return false;
+		
 	}
 		
 	
-	public static boolean retirarDecoracion(Connection conexion, ResultSet datosProducto, int id, int cantRetiro) {
+	public static void retirarDecoracion(Connection conexion, ResultSet datosProducto, int id, int cantRetiro) {
 		try {
 			while(datosProducto.next()) {										
 				Decoracion decoracion = new Decoracion(datosProducto.getInt(1), datosProducto.getInt(4), datosProducto.getFloat(3), 
 						datosProducto.getString(2));
-				return decoracion.retirarDecoracion(conexion, id, cantRetiro);					
+				decoracion.retirarDecoracion(conexion, id, cantRetiro);					
 			}				
 		} catch (SQLException e) {
 			System.out.println("No se puede retirar la decoracion");
 		}
-		return false;
 	}
-
-
-	public static void menuImprimirStock(Connection conexion) {
+	
+	
+	public static int buscarTipoProducto(Connection conexion, int id) {
+		ResultSet producto;
+		int resultado = 0;
+		String query = "SELECT id_tipo_producto FROM productos WHERE id_producto = " + id;
+		producto = queries.ejecutarQuery(conexion, query);	
+		try {
+			while(producto.next()) {
+				return resultado = producto.getInt(1); //En esta posicion tengo el id_tipo_producto
+				//return new Producto(producto.getInt(1),producto.getInt(3), producto.getFloat(4));
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return resultado;
+	}
+	
+	
+	public static void imprimirStock(Connection conexion) {
 		
 		System.out.println("INGRESE LA OPCION DESEADA: " +
 			"\n1. Imprimir stock de arboles" +
@@ -321,41 +283,49 @@ public class main {
 
 	
 	public static void imprimirStockArboles(Connection conexion) {
-			
-		ResultSet result = queries.ejecutarQuery(conexion, "SELECT SUM(cantidad) AS 'Cantidad de arboles' FROM arbol");
+		
+		String query = "SELECT SUM(cantidad) AS 'Cantidad de arboles' FROM arbol";		
+		ResultSet result = queries.ejecutarQuery(conexion, query);
 		
 		try {
 			while(result.next()) {
 				System.out.println("Hay en stock " +result.getString("Cantidad de arboles") + " Arboles");
 			}
 		} catch (SQLException e) {
-			System.out.println("ERROR");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}			
 	}
 	
 	
 	public static void imprimirStockFlores(Connection conexion) {
 		
-		ResultSet result = queries.ejecutarQuery(conexion, "SELECT SUM(cantidad) AS 'Cantidad de flores' FROM flor");		
+		String query = "SELECT SUM(cantidad) AS 'Cantidad de flores' FROM flor";		
+		ResultSet result = queries.ejecutarQuery(conexion, query);
+		
 		try {
 			while(result.next()) {
 				System.out.println("Hay en stock " + result.getString("Cantidad de flores") + " Flores");
 			}
 		} catch (SQLException e) {
-			System.out.println("ERROR");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}		
 	}
 	
 	
 	public static void imprimirStockDecoraciones(Connection conexion) {
 		
-		ResultSet result = queries.ejecutarQuery(conexion, "SELECT SUM(cantidad) AS 'Cantidad de decoraciones' FROM decoracion");		
+		String query = "SELECT SUM(cantidad) AS 'Cantidad de decoraciones' FROM decoracion";		
+		ResultSet result = queries.ejecutarQuery(conexion, query);
+		
 		try {
 			while(result.next()) {
 				System.out.println("Hay en stock " + result.getString("Cantidad de decoraciones") + " Decoraciones");
 			}
 		} catch (SQLException e) {
-			System.out.println("No");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}			
 	}
 	
@@ -365,35 +335,41 @@ public class main {
 		int id;
 		int cant;
 		String continuar = "n";
+		System.out.println("Inserte el nro de la comanda");
+		int idComanda = in.nextInt();
+		System.out.println("Ingrese la fecha de la comanda (AAAA-MM-DD");
+		String fecha = in.next();
+		String query = "INSERT INTO comandas(id_comanda, Dia) VALUES(" + idComanda + ", '" + fecha + "')";
 		
-		Ticket ticket = (Ticket)ProductoraFabricas.getFabrica(4).creoTicket();
+		queries.insertar(conexion, query);
+		
 		do {
 			System.out.println("Ingrese el id del producto");
 			id = in.nextInt();
 			System.out.println("Ingrese la cantidad");
 			cant = in.nextInt();
-			if(retirarProducto(conexion, id, cant)) {
-				ticket.insertarTicket(conexion, "INSERT INTO comandas(id_comanda, Dia) VALUES(" + ticket.getId() + ", '" + 
-						ticket.getFecha() + "')");
-				queries.actualizar(conexion, "INSERT INTO detalle_comanda(id_comanda, id_producto, cantidad) VALUES(" + ticket.getId() +
-						", " + id + ", " + cant + ")");
-			}
-			else {
-				System.out.println("No se pudo añadir el producto a la comanda");
-			}			
+			retirarProducto(conexion, id, cant);
+			
+			query = "INSERT INTO detalle_comanda(id_comanda, id_producto, cantidad) VALUES(" + idComanda + ", " + id + ", " 
+				+ cant + ")";
+			
+			queries.insertar(conexion, query);
+			
 			System.out.println("Quiere ingresar mas productos?(S/N)");
 			continuar = in.next();
 			
 		}while(continuar.equalsIgnoreCase("s"));			
-		precioFinalComanda(conexion, ticket.getId());
+		precioFinalComanda(conexion, idComanda);
 	}
 	
 	
 	public static void precioFinalComanda(Connection conexionActual, int idComanda) {
 		
-		ResultSet resultado = queries.ejecutarQuery(conexionActual, "SELECT SUM(p.precio * dc.cantidad) AS 'Precio final' FROM productos " +
-			"AS p INNER JOIN detalle_comanda AS dc ON p.id_producto = dc.id_producto INNER JOIN comandas AS c ON " +
-			"dc.id_comanda = c.id_comanda WHERE c.id_comanda = " + idComanda);
+		String query = "SELECT SUM(p.precio * dc.cantidad) AS 'Precio final' FROM productos AS p INNER JOIN detalle_comanda AS dc " +
+			"ON p.id_producto = dc.id_producto INNER JOIN comandas AS c ON dc.id_comanda = c.id_comanda WHERE c.id_comanda =" 
+			+ idComanda;	
+		
+		ResultSet resultado = queries.ejecutarQuery(conexionActual, query);
 		
 		try {
 			while(resultado.next()) {
@@ -405,7 +381,94 @@ public class main {
 		}		
 	}
 	
+
+	//Conecto a una base de datos ya existente. Me devuelve un Objeto del tipo Connection. Trabajare sobre esa conexion
+	public static Connection conectarBaseDatos() {
 		
+		System.out.println("Ingrese el nombre de la base de datos a la que quiere conectarse");
+		nombreDB = in.next();
+		
+		ConexionBaseDatos conexion = new ConexionBaseDatos();
+		Connection conect = conexion.conectarDB(nombreDB);	
+		
+		return conect;		
+	}
+	
+	
+	//Creo la base de datos desde cero. Devuelvo el Objeto Connection. Trabajare sobre esa conexion
+	public static Connection crearFloristeria() {
+
+		System.out.println("Ingrese el nombre de la floristeria");
+		
+		nombreDB = in.next();
+		
+		String borrarDB = "DROP DATABASE IF EXISTS " + nombreDB;		//Creo la sentencia SQL para eliminar la DB si existe	
+		String query = "CREATE DATABASE " + nombreDB + " CHARACTER SET utf8mb4";	//Creo la sentencia para crear la base de datos
+		String usarDB = "USE " + nombreDB;
+		
+		String crearTablaTipoProducto = "CREATE TABLE tipo_producto(id_tipo_producto INT PRIMARY KEY, descripcion VARCHAR(20))";
+		String crearTablaProductos = "CREATE TABLE productos(id_producto INT UNIQUE PRIMARY KEY, id_tipo_producto INT NOT NULL,"
+			+ "cantidad INT NOT NULL, precio DOUBLE NOT NULL, FOREIGN KEY(id_tipo_producto) REFERENCES tipo_producto(id_tipo_producto))";
+		String crearTablaArbol = "CREATE TABLE arbol(id_arbol INT UNIQUE PRIMARY KEY, altura DOUBLE NOT NULL, "
+			+ "precio DOUBLE NOT NULL, cantidad INT NOT NULL, id_tipo INT NOT NULL, FOREIGN KEY(id_tipo) REFERENCES tipo_producto(id_tipo_producto))";
+		String crearTablaFlor = "CREATE TABLE flor(id_flor INT UNIQUE PRIMARY KEY, color VARCHAR(20) NOT NULL, "
+			+ "precio DOUBLE NOT NULL, cantidad INT NOT NULL, id_tipo INT NOT NULL, FOREIGN KEY(id_tipo) REFERENCES tipo_producto(id_tipo_producto))";
+		String crearTablaDecoracion = "CREATE TABLE decoracion(id_decoracion INT UNIQUE PRIMARY KEY, material VARCHAR(20) NOT NULL, "
+			+ "precio DOUBLE NOT NULL, cantidad INT NOT NULL, id_tipo INT NOT NULL, FOREIGN KEY(id_tipo) REFERENCES tipo_producto(id_tipo_producto))";
+		String crearTablaComanda = "CREATE TABLE comandas(id_comanda INT NOT NULL PRIMARY KEY, Dia DATE NOT NULL)";
+		String crearTablaDetalleComanda = "CREATE TABLE detalle_comanda(id_comanda INT NOT NULL, id_producto INT, cantidad INT,"
+			+ "FOREIGN KEY(id_comanda) REFERENCES comandas(id_comanda), FOREIGN KEY(id_producto) REFERENCES productos(id_producto))";
+		
+			ConexionBaseDatos conexion = new ConexionBaseDatos();
+			Connection conect = conexion.conectarNuevaBD();
+			
+		try {
+			conect.createStatement().execute(borrarDB);
+			conect.createStatement().execute(query);			
+			conect.createStatement().execute(usarDB);
+			conect.prepareStatement(crearTablaTipoProducto).execute();
+			conect.prepareStatement(crearTablaProductos).execute();			
+			conect.prepareStatement(crearTablaArbol).execute();
+			conect.prepareStatement(crearTablaFlor).execute();
+			conect.prepareStatement(crearTablaDecoracion).execute();
+			conect.prepareStatement(crearTablaComanda).execute();
+			conect.prepareStatement(crearTablaDetalleComanda).execute();
+			insertarTipoProducto(conect);
+			System.out.println("Se creo la base de datos");
+		}
+		catch(SQLException e) {
+			System.out.println("No se pudo crear la base de datos");	//Si hubo algun problema ejecuta esto
+		}
+		return conect;
+	}
+	
+
+	//Inserto el tipo de producto al crear la base de datos nueva
+	public static void insertarTipoProducto(Connection conexionActual) {
+		
+		//String insertar = "INSERT INTO tipo_producto(id_tipo_producto, descripcion) VALUES(1, 'Arbol')";
+		
+		try {
+			PreparedStatement insertarValores = conexionActual.prepareStatement("INSERT INTO tipo_producto(id_tipo_producto, descripcion) "
+					+ "VALUES(1, 'Arbol')");
+			insertarValores.executeUpdate("INSERT INTO tipo_producto(id_tipo_producto, descripcion) "
+					+ "VALUES(1, 'Arbol')");
+			PreparedStatement insertarValores2 = conexionActual.prepareStatement("INSERT INTO tipo_producto(id_tipo_producto, descripcion) "
+					+ "VALUES(2, 'Flor')");
+			insertarValores2.executeUpdate("INSERT INTO tipo_producto(id_tipo_producto, descripcion) "
+					+ "VALUES(2, 'Flor')");
+			PreparedStatement insertarValores3 = conexionActual.prepareStatement("INSERT INTO tipo_producto(id_tipo_producto, descripcion) "
+					+ "VALUES(3, 'Decoracion')");
+			insertarValores3.executeUpdate("INSERT INTO tipo_producto(id_tipo_producto, descripcion) "
+					+ "VALUES(3, 'Decoracion')");
+		}
+		catch(SQLException e) {
+			System.out.println("No se pudo crear");
+		}
+	}
+
+	
+	
 	public static void menuHistoricoVentas(Connection conexion) {
 		
 		System.out.println("INGRESE LA OPCION DESEADA: " +
@@ -415,7 +478,7 @@ public class main {
 		
 		switch(in.nextInt()) {
 			case 1:
-				calcularVentasTotal(conexion);
+				System.out.println("Imprimir ventas totales");
 				break;
 				
 			case 2:
@@ -433,15 +496,16 @@ public class main {
 	}
 
 	
+
 	public static void historicoVentas(Connection conexion) {
 		
 		System.out.println("Ingrese la fecha de comienzo de la consulta (formato AAAA-MM-DD)");
 		String comienzo = in.next();
 		System.out.println("Ingrese la fecha de fin de la consulta (formato AAAA-MM-DD)");
 		String fin = in.next();
-		
-		ResultSet resultado = queries.ejecutarQuery(conexion, "SELECT * FROM comandas AS c WHERE c.Dia >= '" +  comienzo +	
-				"' AND c.Dia <= '" + fin + "'");
+				
+		String query = "SELECT * FROM comandas AS c WHERE c.Dia >= '" +  comienzo +	"' AND c.Dia <= '" + fin + "'";
+		ResultSet resultado = queries.ejecutarQuery(conexion, query);
 		
 		try {
 			while(resultado.next()) {
@@ -454,26 +518,32 @@ public class main {
 	}
 
 
-	public static void calcularVentasTotal(Connection conexion) {
+/*
+	public static void calcularVentasTotal(Connection conexionActual) {
 		
-		ResultSet resultado = queries.ejecutarQuery(conexion, "SELECT SUM(p.precio * dc.cantidad) AS 'Total ganado' FROM productos " +
-				"AS p INNER JOIN detalle_comanda AS dc ON p.id_producto = dc.id_producto");
+		String query = "SELECT SUM(p.precio * dc.cantidad) AS 'Total ganado' FROM productos AS p INNER JOIN detalle_comanda AS dc " +
+			"ON p.id_producto = dc.id_producto";
 		try {
+			Statement consulta = conexionActual.createStatement();
+			ResultSet resultado = consulta.executeQuery(query);
 			while(resultado.next()) {
-				System.out.println("En total ha vendido: " + resultado.getDouble(1) + "€\n");
+				System.out.println("En total ha ganado: " + resultado.getDouble(1) + "€\n");
 			}			
 		}
 		catch(SQLException e) {
 			System.out.println("No se puede hacer la consulta");
 		}		
 	}
-
+*/
 	
-	public static void calcularValorTotalStock(Connection conexion) {
+/*
+	public static void calcularValorTotalStock(Connection conexionActual) {
 		
-		ResultSet resultado = queries.ejecutarQuery(conexion, "SELECT SUM(p.precio * p.cantidad) AS 'Total valor stock' FROM productos " +
-				"AS p");		
+		String query = "SELECT SUM(p.precio * p.cantidad) AS 'Total valor stock' FROM productos AS p";
+		
 		try {
+			Statement consulta = conexionActual.createStatement();
+			ResultSet resultado = consulta.executeQuery(query);
 			while(resultado.next()) {
 				System.out.println("El valor total del stock es: " + resultado.getDouble(1) + "€\n");
 			}			
@@ -483,4 +553,5 @@ public class main {
 		}
 	}
 	
+	*/
 }
