@@ -2,6 +2,9 @@ package s3_03_pablogarciabarros;
 
 import java.sql.Connection;
 
+//Esta es la clase Decoracion propiamente dicha. Con sus respectivos metodos. Extiende de la clase Producto porque Decoracion ES un Producto
+
+
 public class Decoracion extends Producto{
 	
 	private String material;
@@ -15,13 +18,17 @@ public class Decoracion extends Producto{
 	public void agregarDecoracion(Connection conexion) {
 		String insertar = "INSERT INTO decoracion(id_decoracion, material, precio, cantidad, id_tipo) VALUES(" + super.getId() + ",'" + 
 			this.material + "'," + super.getPrecio() + "," + super.getCantidad() +", 3)";		
-		super.getQuery().insertar(conexion, insertar);
+		super.getQuery().actualizar(conexion, insertar);
 	}
 	
-	public void retirarDecoracion(Connection conexion, int idRetiro, int cantRetiro) {
-		String retiro = "UPDATE decoracion SET cantidad = (cantidad - " + cantRetiro + ") WHERE id_decoracion = " + idRetiro;
-		super.retirarProducto(conexion, idRetiro, cantRetiro);
-		super.getQuery().retirar(conexion, retiro);
+	public boolean retirarDecoracion(Connection conexion, int idRetiro, int cantRetiro) {
+		if(super.retirarProducto(conexion, idRetiro, cantRetiro)) {
+			return super.getQuery().actualizar(conexion, "UPDATE decoracion SET cantidad = (cantidad - " + cantRetiro + ") WHERE id_decoracion = " + idRetiro);
+		}
+		else {
+			System.out.println("No se pudo retirar la decoracion");
+			return false;
+		}
 	}
 
 	@Override
@@ -38,11 +45,4 @@ public class Decoracion extends Producto{
 	public void setMaterial(String material) {
 		this.material = material;
 	}
-
-	@Override
-	public void imprimirStock() {
-		// TODO Auto-generated method stub
-		
-	}
-
 }

@@ -15,26 +15,24 @@ public class Producto {
 		this.precio = precio;
 		this.id = id;
 	}
-	
-	public void imprimirStock() {		
-	}
-	
+
 	
 	public void agregarProducto(Connection conexion, int tipoProd) {			
 		String queryInsertar = "INSERT INTO productos(id_producto, id_tipo_producto, cantidad, precio) VALUES(" + this.id + ", " + tipoProd + 
 			", " + this.cantidad + "," + this.precio + ")";
-		query.insertar(conexion, queryInsertar);
+		query.actualizar(conexion, queryInsertar);
 	}
 	
 
-	public void retirarProducto(Connection conexion, int idRetiro, int cantRetiro) {
+	public boolean retirarProducto(Connection conexion, int idRetiro, int cantRetiro) {
 		int stock = obtenerStock(conexion, idRetiro);
 		String queryRetiroProducto = "UPDATE productos SET cantidad = (cantidad - " + cantRetiro + ") WHERE id_producto = " + idRetiro;
 		if(cantRetiro <= stock) {
-			query.retirar(conexion, queryRetiroProducto);
+			return query.actualizar(conexion, queryRetiroProducto);			
 		}
 		else {
 			System.out.println("No se puede retirar mas de lo que hay en stock");
+			return false;
 		}
 	}
 	
