@@ -5,7 +5,7 @@ import java.util.Scanner;
 public class FabricaFlor extends FabricaAbstracta{
 
 	@Override
-	Producto tipoProducto(int opcionProducto) {
+	Producto nuevoProducto() {
 		
 		
 		Scanner in = new Scanner(System.in);
@@ -21,6 +21,16 @@ public class FabricaFlor extends FabricaAbstracta{
 		
 		return new Flor(id, cant, precio, color);
 		
+	}
+
+	@Override
+	Ticket nuevoTicket() {
+		return null;
+	}
+
+	@Override
+	ConexionBaseDatos nuevaConexion() {
+		return null;
 	}
 
 }

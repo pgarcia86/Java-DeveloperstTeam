@@ -10,6 +10,10 @@ public class ProductoraFabricas {
 				return new FabricaFlor();
 			case 3:
 				return new FabricaDecoracion();
+			case 4:
+				return new FabricaTicket();
+			case 5:
+				return new FabricaConexion();
 			default:
 				return null;					
 		}

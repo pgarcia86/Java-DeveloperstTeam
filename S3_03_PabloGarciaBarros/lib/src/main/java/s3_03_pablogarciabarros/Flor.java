@@ -2,6 +2,9 @@ package s3_03_pablogarciabarros;
 
 import java.sql.Connection;
 
+//Esta es la clase Flor propiamente dicha. Con sus respectivos metodos. Extiende de la clase Producto porque Flor ES un Producto
+
+
 public class Flor extends Producto{
 	
 	private String color;
@@ -12,18 +15,19 @@ public class Flor extends Producto{
 		this.color = color;
 	}
 	
-	public void agregarFlor(Connection conexion) {
-		String insertar = "INSERT INTO flor(id_flor, color, precio, cantidad, id_tipo) VALUES(" + super.getId() + ",'" + 
-			this.color + "'," + super.getPrecio() + "," + super.getCantidad() +", 2)";
-		super.getQuery().insertar(conexion, insertar);
-	}
 	
-	public void retirarFlor(Connection conexion, int idRetiro, int cantRetiro) {
-		String retiro = "UPDATE flor SET cantidad = (cantidad - " + cantRetiro + ") WHERE id_flor = " + idRetiro;
-		super.retirarProducto(conexion, idRetiro, cantRetiro);
-		super.getQuery().retirar(conexion, retiro);
+	@Override
+	public void agregarProducto(Connection conexion) {
+		String queryInsertarProducto = "INSERT INTO productos(id_producto, id_tipo_producto, cantidad, precio) VALUES(" + super.getId() + ", " + "1 " + 
+				", " + super.getCantidad() + "," + super.getPrecio() + ")";
+		String queryInsertarFlor = "INSERT INTO flor(id_flor, color, precio, cantidad, id_tipo) VALUES(" + super.getId() + ",'" + this.color + "'," + 
+			super.getPrecio() +	"," + super.getCantidad() +", 1)";
+		
+		super.getQuery().actualizar(conexion, queryInsertarProducto);
+		super.getQuery().actualizar(conexion, queryInsertarFlor);
 	}
 
+	@Override
 	public String toString() {
 		return "FLOR: " +
 				"\nEl color de la Flor es: " + this.color +
@@ -36,11 +40,5 @@ public class Flor extends Producto{
 
 	public void setColor(String color) {
 		this.color = color;
-	}
-
-	@Override
-	public void imprimirStock() {
-		// TODO Auto-generated method stub
-		
 	}
 }

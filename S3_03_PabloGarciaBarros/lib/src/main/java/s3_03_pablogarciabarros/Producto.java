@@ -2,7 +2,7 @@ package s3_03_pablogarciabarros;
 
 import java.sql.Connection;
 
-public class Producto {
+public abstract class Producto {
 	
 	private int cantidad;
 	private float precio;
@@ -15,35 +15,11 @@ public class Producto {
 		this.precio = precio;
 		this.id = id;
 	}
-	
-	public void imprimirStock() {		
-	}
-	
-	
-	public void agregarProducto(Connection conexion, int tipoProd) {			
-		String queryInsertar = "INSERT INTO productos(id_producto, id_tipo_producto, cantidad, precio) VALUES(" + this.id + ", " + tipoProd + 
-			", " + this.cantidad + "," + this.precio + ")";
-		query.insertar(conexion, queryInsertar);
-	}
-	
 
-	public void retirarProducto(Connection conexion, int idRetiro, int cantRetiro) {
-		int stock = obtenerStock(conexion, idRetiro);
-		String queryRetiroProducto = "UPDATE productos SET cantidad = (cantidad - " + cantRetiro + ") WHERE id_producto = " + idRetiro;
-		if(cantRetiro <= stock) {
-			query.retirar(conexion, queryRetiroProducto);
-		}
-		else {
-			System.out.println("No se puede retirar mas de lo que hay en stock");
-		}
-	}
-	
-	public int obtenerStock(Connection conexion, int id) {
-		String queryCantidad = "SELECT cantidad FROM productos WHERE id_producto = " + id;
-		int cantidad = query.cantidad(conexion, queryCantidad);	
-		return cantidad;		
-	}
-	
+
+	public abstract void agregarProducto(Connection conexion);
+
+
 	@Override
 	public String toString() {
 		return "El id es: " + this.id + 

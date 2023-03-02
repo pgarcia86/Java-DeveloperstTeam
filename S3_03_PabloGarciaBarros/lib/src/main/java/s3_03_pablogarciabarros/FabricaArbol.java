@@ -5,7 +5,7 @@ import java.util.Scanner;
 public class FabricaArbol extends FabricaAbstracta{
 
 	@Override
-	Producto tipoProducto(int opcionProducto) {
+	Producto nuevoProducto() {
 		
 		Scanner in = new Scanner(System.in);
 		
@@ -16,10 +16,21 @@ public class FabricaArbol extends FabricaAbstracta{
 		System.out.println("Ingrese la altura del Arbol");
 		float altura = in.nextFloat();
 		System.out.println("Ingrese la cantidad de Arboles");
-		int cant = in.nextInt();
-		
+		int cant = in.nextInt();		
 		
 		return new Arbol(id, cant, precio, altura);
+	}
+
+
+	@Override
+	Ticket nuevoTicket() {
+		return null;
+	}
+
+
+	@Override
+	ConexionBaseDatos nuevaConexion() {
+		return null;
 	}
 
 }
