@@ -21,6 +21,7 @@ public class ConexionBaseDatos {
 		this.queries = new QueriesSQL();
 	}
 	
+	
 	public Connection conectarNuevaBD() {
 		String url = "jdbc:mysql://" + hostname + ":" + puerto + "/?useSSL=false";
 		Connection conexion = null;
@@ -54,9 +55,9 @@ public class ConexionBaseDatos {
 		queries.ejecutar(conexion, "CREATE TABLE comandas(id_comanda INT NOT NULL PRIMARY KEY, Dia DATE NOT NULL)");
 		queries.ejecutar(conexion, "CREATE TABLE detalle_comanda(id_comanda INT NOT NULL, id_producto INT, cantidad INT,\r\n"
 				+ "	FOREIGN KEY(id_comanda) REFERENCES comandas(id_comanda), FOREIGN KEY(id_producto) REFERENCES producto(id_producto))");
-		queries.actualizar(conexion, "INSERT INTO tipo_producto(id_tipo_producto, descripcion) VALUES(1, \"Arbol\")");
-		queries.actualizar(conexion, "INSERT INTO tipo_producto(id_tipo_producto, descripcion) VALUES(2, \"Flor\")");
-		queries.actualizar(conexion, "INSERT INTO tipo_producto(id_tipo_producto, descripcion) VALUES(3, \"Decoracion\")");
+		queries.insertarTipoProducto(conexion, 1, "Arbol");
+		queries.insertarTipoProducto(conexion, 2, "Flor");
+		queries.insertarTipoProducto(conexion, 1, "Decoracion");
 		return conexion;
 	}
 	

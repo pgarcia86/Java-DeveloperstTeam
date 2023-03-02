@@ -14,24 +14,24 @@ public class Ticket {
 		this.query = new QueriesSQL();
 	}
 	
-	public void insertarTicket(Connection conexion, String query) {
-		this.query.actualizar(conexion, query);
-	}
-	
-	
-	
+	public void insertarTicket(Connection conexion, int id, String fecha) {
+		
+		query.insertarTicket(conexion, id, fecha);
+	}	
 	
 	public int getId() {
 		return id;
 	}
+	
 	public void setId(int id) {
 		this.id = id;
 	}
+	
 	public String getFecha() {
 		return fecha;
 	}
+	
 	public void setFecha(String fecha) {
 		this.fecha = fecha;
 	}
-
 }

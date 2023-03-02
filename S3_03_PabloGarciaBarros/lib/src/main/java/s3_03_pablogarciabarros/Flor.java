@@ -18,13 +18,9 @@ public class Flor extends Producto{
 	
 	@Override
 	public void agregarProducto(Connection conexion) {
-		String queryInsertarProducto = "INSERT INTO producto(id_producto, id_tipo_producto, cantidad, precio) VALUES(" + super.getId() + ", " + "2 " + 
-				", " + super.getCantidad() + "," + super.getPrecio() + ")";
-		String queryInsertarFlor = "INSERT INTO flor(id_flor, color, precio, cantidad, id_tipo) VALUES(" + super.getId() + ",'" + this.color + "'," + 
-			super.getPrecio() +	"," + super.getCantidad() +", 2)";
-		
-		super.getQuery().actualizar(conexion, queryInsertarProducto);
-		super.getQuery().actualizar(conexion, queryInsertarFlor);
+
+		super.getQuery().insertarProducto(conexion, "producto", super.getId(), 2, super.getCantidad(), super.getPrecio());
+		super.getQuery().insertarFlor(conexion, super.getId(), super.getCantidad(), super.getPrecio(), this.color);
 	}
 
 	@Override

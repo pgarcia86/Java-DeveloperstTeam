@@ -4,11 +4,10 @@ import java.util.Scanner;
 
 public class FabricaDecoracion extends FabricaAbstracta{
 
+	Scanner in = new Scanner(System.in);
+	
 	@Override
-	Producto nuevoProducto() {
-
-		
-		Scanner in = new Scanner(System.in);
+	Producto nuevoProducto() {		
 		
 		System.out.println("Ingrese el ID de la Decoracion");
 		int id = in.nextInt();
@@ -31,5 +30,4 @@ public class FabricaDecoracion extends FabricaAbstracta{
 	ConexionBaseDatos nuevaConexion() {
 		return null;
 	}
-
 }

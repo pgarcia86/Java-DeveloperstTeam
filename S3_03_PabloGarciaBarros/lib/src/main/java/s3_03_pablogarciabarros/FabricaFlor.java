@@ -4,11 +4,10 @@ import java.util.Scanner;
 
 public class FabricaFlor extends FabricaAbstracta{
 
+	Scanner in = new Scanner(System.in);
+	
 	@Override
-	Producto nuevoProducto() {
-		
-		
-		Scanner in = new Scanner(System.in);
+	Producto nuevoProducto() {		
 		
 		System.out.println("Ingrese el ID del Flor");
 		int id = in.nextInt();
@@ -19,8 +18,7 @@ public class FabricaFlor extends FabricaAbstracta{
 		System.out.println("Ingrese la cantidad de Flores");
 		int cant = in.nextInt();		
 		
-		return new Flor(id, cant, precio, color);
-		
+		return new Flor(id, cant, precio, color);		
 	}
 
 	@Override
@@ -32,5 +30,4 @@ public class FabricaFlor extends FabricaAbstracta{
 	ConexionBaseDatos nuevaConexion() {
 		return null;
 	}
-
 }

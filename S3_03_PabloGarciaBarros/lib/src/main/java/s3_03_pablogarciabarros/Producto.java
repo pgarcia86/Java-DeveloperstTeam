@@ -51,7 +51,6 @@ public abstract class Producto {
 		this.id = id;
 	}
 	
-	
 	public QueriesSQL getQuery() {
 		return query;
 	}

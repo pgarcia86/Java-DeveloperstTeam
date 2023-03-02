@@ -16,13 +16,10 @@ public class Decoracion extends Producto{
 	
 	
 	@Override
-	public void agregarProducto(Connection conexion) {
-		String queryInsertarProducto = "INSERT INTO producto(id_producto, id_tipo_producto, cantidad, precio) VALUES(" + super.getId() + ", " + "3 " + 
-				", " + super.getCantidad() + "," + super.getPrecio() + ")";
-		String queryInsertarDecoracion = "INSERT INTO decoracion(id_Decoracion, material, precio, cantidad, id_tipo) VALUES(" + super.getId() + ",'" + this.material + "'," + 
-			super.getPrecio() +	"," + super.getCantidad() +", 3)";
-		super.getQuery().actualizar(conexion, queryInsertarProducto);
-		super.getQuery().actualizar(conexion, queryInsertarDecoracion);
+	public void agregarProducto(Connection conexion) {		
+
+		super.getQuery().insertarProducto(conexion, "producto", super.getId(), 3, super.getCantidad(), super.getPrecio());
+		super.getQuery().insertarDecoracion(conexion, super.getId(), super.getCantidad(), super.getPrecio(), this.material);
 	}
 	
 

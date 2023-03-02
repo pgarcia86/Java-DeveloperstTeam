@@ -30,8 +30,7 @@ public class main {
 			opcion = menuPrincipal();
 			manejoMenu(conexion, opcion);
 			
-		}while(opcion != 0);
-		
+		}while(opcion != 0);		
 	}
 	
 	
@@ -96,7 +95,7 @@ public class main {
 			 break;
 			 
 		 case 7: 
-			 calcularValorTotalStock(conexion);
+			 System.out.println("El valor total del stock es: " + queries.calcularValorTotalStock(conexion) + "€");
 			 break;
 			 
 		 case 0:
@@ -213,11 +212,6 @@ public class main {
 		return new int[] {0,0};
 	}
 
-
-	//TODO ESTO LO PUEDO HACER EN UNO SOLO
-	//DESDE AQUI
-	
-	//PUEDO REPLICAR LO DE RETIRARPRODUCTO HACIENDO LAS QUERIS EN LA CLASE QUERIESSQL
 	
 	public static void menuImprimirStock(Connection conexion) {
 		
@@ -225,20 +219,24 @@ public class main {
 			"\n1. Imprimir stock de arboles" +
 			"\n2. Imprimir stock de plantas" +
 			"\n3. Imprimir stock de decoraciones" +
+			"\n4. Imprimir el total de productos" +
 			"\n0. Volver al menu anterior");
 		
 		switch(in.nextInt()) {				
 			case 1:
-				imprimirStockArboles(conexion);
+				System.out.println("Hay en stock: " + queries.imprimirStockArboles(conexion) + " arboles");
 				break;
 				
 			case 2:
-				imprimirStockFlores(conexion);
+				System.out.println("Hay en stock: " + queries.imprimirStockFlores(conexion) + " flores");
 				break;
 				
 			case 3:
-				imprimirStockDecoraciones(conexion);
+				System.out.println("Hay en stock: " + queries.imprimirStockDecoracion(conexion) + " decoraciones");
 				break;
+			
+			case 4:
+				System.out.println("Hay en stock: " + queries.imprimirStockTotal(conexion) + " productos");
 				
 			case 0:
 				menuPrincipal();
@@ -251,47 +249,6 @@ public class main {
 	}
 
 	
-	public static void imprimirStockArboles(Connection conexion) {
-			
-		ResultSet result = queries.ejecutarQuery(conexion, "SELECT SUM(cantidad) AS 'Cantidad de arboles' FROM arbol");
-		
-		try {
-			while(result.next()) {
-				System.out.println("Hay en stock " +result.getString("Cantidad de arboles") + " Arboles");
-			}
-		} catch (SQLException e) {
-			System.out.println("ERROR");
-		}			
-	}
-	
-	
-	public static void imprimirStockFlores(Connection conexion) {
-		
-		ResultSet result = queries.ejecutarQuery(conexion, "SELECT SUM(cantidad) AS 'Cantidad de flores' FROM flor");		
-		try {
-			while(result.next()) {
-				System.out.println("Hay en stock " + result.getString("Cantidad de flores") + " Flores");
-			}
-		} catch (SQLException e) {
-			System.out.println("ERROR");
-		}		
-	}
-	
-	
-	public static void imprimirStockDecoraciones(Connection conexion) {
-		
-		ResultSet result = queries.ejecutarQuery(conexion, "SELECT SUM(cantidad) AS 'Cantidad de decoraciones' FROM decoracion");		
-		try {
-			while(result.next()) {
-				System.out.println("Hay en stock " + result.getString("Cantidad de decoraciones") + " Decoraciones");
-			}
-		} catch (SQLException e) {
-			System.out.println("No");
-		}			
-	}
-	
-	//HASTA AQUI
-
 	public static void crearTicket(Connection conexion) {
 			
 		String continuar = "n";
@@ -302,8 +259,7 @@ public class main {
 		do {
 			idCant = retirarProducto(conexion);
 			if(idCant[0] != 0 && flag == false) {
-				ticket.insertarTicket(conexion, "INSERT INTO comandas(id_comanda, Dia) VALUES(" + ticket.getId() + ", '" + 
-						ticket.getFecha() + "')");
+				ticket.insertarTicket(conexion, ticket.getId(), ticket.getFecha());
 				queries.insertarDetalleComanda(conexion, ticket.getId(), idCant[0], idCant[1]);
 				flag = true;
 			}
@@ -316,25 +272,8 @@ public class main {
 			System.out.println("Quiere ingresar mas productos?(S/N)");
 			continuar = in.next();
 			
-		}while(continuar.equalsIgnoreCase("s"));			
-		precioFinalComanda(conexion, ticket.getId());
-	}
-	
-	
-	public static void precioFinalComanda(Connection conexionActual, int idComanda) {
-		
-		ResultSet resultado = queries.ejecutarQuery(conexionActual, "SELECT SUM(p.precio * dc.cantidad) AS 'Precio final' FROM producto " +
-			"AS p INNER JOIN detalle_comanda AS dc ON p.id_producto = dc.id_producto INNER JOIN comandas AS c ON " +
-			"dc.id_comanda = c.id_comanda WHERE c.id_comanda = " + idComanda);
-		
-		try {
-			while(resultado.next()) {
-				System.out.println("El precio final de la comanda es: " + resultado.getInt(1) + "€\n");
-			}
-		}
-		catch(SQLException e){
-			System.out.println("No se puede hacer la consulta");
-		}		
+		}while(continuar.equalsIgnoreCase("s"));
+		System.out.println("El precio de la comanda es: " + queries.getPrecioComanda(conexion, ticket.getId()));
 	}
 	
 		
@@ -347,7 +286,7 @@ public class main {
 		
 		switch(in.nextInt()) {
 			case 1:
-				calcularVentasTotal(conexion);
+				System.out.println("Se vendieron en total "	+ queries.calcularTotalVentas(conexion) + "€");
 				break;
 				
 			case 2:
@@ -370,51 +309,16 @@ public class main {
 		System.out.println("Ingrese la fecha de comienzo de la consulta (formato AAAA-MM-DD)");
 		String comienzo = in.next();
 		System.out.println("Ingrese la fecha de fin de la consulta (formato AAAA-MM-DD)");
-		String fin = in.next();
+		String fin = in.next();		
 		
-		ResultSet resultado = queries.ejecutarQuery(conexion, "SELECT * FROM comandas AS c WHERE c.Dia >= '" +  comienzo +	
-				"' AND c.Dia <= '" + fin + "'");
+		ResultSet resultado = queries.buscarComandasFecha(conexion, comienzo, fin);
 		
 		try {
 			while(resultado.next()) {
-				if(resultado != null) {
-					System.out.println("ID Comanda: " + resultado.getString(1) + " - Fecha: " + resultado.getString(2));
-				}
+				System.out.println("ID Comanda: " + resultado.getString(1) + " - Fecha: " + resultado.getString(2));
 			}
-		}
-		catch(SQLException e) {
-			System.out.println("No se puede hacer la consulta");
-		}		
-	}
-
-
-	public static void calcularVentasTotal(Connection conexion) {
-		
-		ResultSet resultado = queries.ejecutarQuery(conexion, "SELECT SUM(p.precio * dc.cantidad) AS 'Total ganado' FROM producto " +
-				"AS p INNER JOIN detalle_comanda AS dc ON p.id_producto = dc.id_producto");
-		try {
-			while(resultado.next()) {
-				System.out.println("En total ha vendido: " + resultado.getDouble(1) + "€\n");
-			}			
-		}
-		catch(SQLException e) {
-			System.out.println("No se puede hacer la consulta");
-		}		
-	}
-
-	
-	public static void calcularValorTotalStock(Connection conexion) {
-		
-		ResultSet resultado = queries.ejecutarQuery(conexion, "SELECT SUM(p.precio * p.cantidad) AS 'Total valor stock' FROM producto " +
-				"AS p");		
-		try {
-			while(resultado.next()) {
-				System.out.println("El valor total del stock es: " + resultado.getDouble(1) + "€\n");
-			}			
-		}
-		catch(SQLException e) {
-			System.out.println("No se puede hacer la consulta");
+		} catch (SQLException e) {
 		}
 	}
-	
+
 }
