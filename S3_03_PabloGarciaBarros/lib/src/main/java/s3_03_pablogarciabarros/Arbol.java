@@ -24,7 +24,7 @@ public class Arbol extends Producto{
 	
 	@Override
 	public void agregarProducto(Connection conexion) {
-		String queryInsertarProducto = "INSERT INTO productos(id_producto, id_tipo_producto, cantidad, precio) VALUES(" + super.getId() + ", " + "1 " + 
+		String queryInsertarProducto = "INSERT INTO producto(id_producto, id_tipo_producto, cantidad, precio) VALUES(" + super.getId() + ", " + "1 " + 
 				", " + super.getCantidad() + "," + super.getPrecio() + ")";
 		String queryInsertarArbol = "INSERT INTO arbol(id_arbol, altura, precio, cantidad, id_tipo) VALUES(" + super.getId() + "," + this.altura + "," + 
 			super.getPrecio() +	"," + super.getCantidad() +", 1)";

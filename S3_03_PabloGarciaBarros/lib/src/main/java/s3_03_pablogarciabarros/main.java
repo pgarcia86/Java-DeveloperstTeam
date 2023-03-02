@@ -153,77 +153,55 @@ public class main {
 		System.out.println("Ingrese la cantidad a añadir");
 		int cant = in.nextInt();
 		
-		int tipoProd = buscarTipoProducto(conexion, id);
-		int idProdCargado = buscarProducto(conexion, id);
+		int tipoProd = queries.getIdTipoProducto(conexion, id);
+		int idProdCargado = queries.getIdProducto(conexion, id);
 		
 		if(idProdCargado == 0) {
 			System.out.println("El producto no esta cargado en la Base de Datos");
 		}
 		else {
-			queries.actualizar(conexion, "UPDATE productos SET cantidad = (cantidad + " + cant + ") WHERE id_producto = " + id);
+			queries.sumarStock(conexion, id, cant, "producto"); //Paso como parametro la conexion, el id, la cantidad y la tabla que quiero actualizar
 		}
 		
 		switch(tipoProd) {
 			case 1:
-				queries.actualizar(conexion, "UPDATE arbol SET cantidad = (cantidad + " + cant + ") WHERE id_arbol = " + id);
+				queries.sumarStock(conexion, id, cant, "arbol");
 				break;
 			case 2:
-				queries.actualizar(conexion, "UPDATE flor SET cantidad = (cantidad + " + cant + ") WHERE id_flor = " + id);
+				queries.sumarStock(conexion, id, cant, "flor");
 				break;
 			case 3:
-				queries.actualizar(conexion, "UPDATE decoracion SET cantidad = (cantidad + " + cant + ") WHERE id_decoracion = " + id);
+				queries.sumarStock(conexion, id, cant, "decoracion");
 				break;
 		}
 	}
-	
-	
-	public static int buscarProducto(Connection conexion, int id) {
-		
-		return queries.getId(conexion, "SELECT id_producto FROM productos WHERE id_producto = " + id); 
 
-	}
 
-	
-	public static int buscarTipoProducto(Connection conexion, int id) {
-		ResultSet producto;
-		int resultado = 0;
-		producto = queries.ejecutarQuery(conexion, "SELECT id_tipo_producto FROM productos WHERE id_producto = " + id);	
-		try {
-			while(producto.next()) {
-				return resultado = producto.getInt(1); 
-			}
-		} catch (SQLException e) {
-			System.out.println("ERROR");
-		}
-		return resultado;
-	}
-
-	
 	public static int[] retirarProducto(Connection conexion) {
 		System.out.println("Ingrese el id del producto");
 		int id = in.nextInt();
 		System.out.println("Ingrese la cantidad a retirar");
 		int cant = in.nextInt();
 		
-		int tipoProd = buscarTipoProducto(conexion, id);
-		int idProdCargado = buscarProducto(conexion, id);
+		int tipoProd = queries.getIdTipoProducto(conexion, id);
+		int idProdCargado = queries.getIdProducto(conexion, id);
 		
 		if(idProdCargado == 0) {
 			System.out.println("El producto no esta cargado en la Base de Datos");
 		}
 		else {
-			int stock = queries.getStock(conexion, "SELECT cantidad FROM productos WHERE id_producto = " + id);
+			int stock = queries.getStock(conexion, id);
 			if(cant <= stock) {
-				queries.actualizar(conexion, "UPDATE productos SET cantidad = (cantidad - " + cant + ") WHERE id_producto = " + id);
+				queries.restarStock(conexion, id, cant, "producto");	//Paso como parametro la conexion, el id, la cantidad y la tabla que quiero actualizar
 				switch(tipoProd) {
 				case 1:
-					queries.actualizar(conexion, "UPDATE arbol SET cantidad = (cantidad - " + cant + ") WHERE id_arbol = " + id);
+					queries.restarStock(conexion, id, cant, "arbol");
 					return new int []{id, cant};
 				case 2:
-					queries.actualizar(conexion, "UPDATE flor SET cantidad = (cantidad - " + cant + ") WHERE id_flor = " + id);
+					queries.restarStock(conexion, id, cant, "flor");
 					return new int []{id, cant};
 				case 3:
-					queries.actualizar(conexion, "UPDATE decoracion SET cantidad = (cantidad - " + cant + ") WHERE id_decoracion = " + id);
+					queries.restarStock(conexion, id, cant, "decoracion");
 					return new int []{id, cant};
 				}
 			}
@@ -236,6 +214,11 @@ public class main {
 	}
 
 
+	//TODO ESTO LO PUEDO HACER EN UNO SOLO
+	//DESDE AQUI
+	
+	//PUEDO REPLICAR LO DE RETIRARPRODUCTO HACIENDO LAS QUERIS EN LA CLASE QUERIESSQL
+	
 	public static void menuImprimirStock(Connection conexion) {
 		
 		System.out.println("INGRESE LA OPCION DESEADA: " +
@@ -307,24 +290,29 @@ public class main {
 		}			
 	}
 	
+	//HASTA AQUI
 
 	public static void crearTicket(Connection conexion) {
 			
 		String continuar = "n";
+		boolean flag = false;
 		
 		Ticket ticket = (Ticket)ProductoraFabricas.getFabrica(4).nuevoTicket();
 		int[] idCant;	
 		do {
 			idCant = retirarProducto(conexion);
-			if(idCant[0] != 0) {
+			if(idCant[0] != 0 && flag == false) {
 				ticket.insertarTicket(conexion, "INSERT INTO comandas(id_comanda, Dia) VALUES(" + ticket.getId() + ", '" + 
 						ticket.getFecha() + "')");
-				queries.actualizar(conexion, "INSERT INTO detalle_comanda(id_comanda, id_producto, cantidad) VALUES(" + ticket.getId() +
-						", " + idCant[0] + ", " + idCant[1] + ")");
+				queries.insertarDetalleComanda(conexion, ticket.getId(), idCant[0], idCant[1]);
+				flag = true;
 			}
+			else if(idCant[0] != 0 && flag == true){
+				queries.insertarDetalleComanda(conexion, ticket.getId(), idCant[0], idCant[1]);
+			}			
 			else {
 				System.out.println("No se pudo añadir el producto a la comanda");
-			}			
+			}
 			System.out.println("Quiere ingresar mas productos?(S/N)");
 			continuar = in.next();
 			
@@ -335,7 +323,7 @@ public class main {
 	
 	public static void precioFinalComanda(Connection conexionActual, int idComanda) {
 		
-		ResultSet resultado = queries.ejecutarQuery(conexionActual, "SELECT SUM(p.precio * dc.cantidad) AS 'Precio final' FROM productos " +
+		ResultSet resultado = queries.ejecutarQuery(conexionActual, "SELECT SUM(p.precio * dc.cantidad) AS 'Precio final' FROM producto " +
 			"AS p INNER JOIN detalle_comanda AS dc ON p.id_producto = dc.id_producto INNER JOIN comandas AS c ON " +
 			"dc.id_comanda = c.id_comanda WHERE c.id_comanda = " + idComanda);
 		
@@ -402,7 +390,7 @@ public class main {
 
 	public static void calcularVentasTotal(Connection conexion) {
 		
-		ResultSet resultado = queries.ejecutarQuery(conexion, "SELECT SUM(p.precio * dc.cantidad) AS 'Total ganado' FROM productos " +
+		ResultSet resultado = queries.ejecutarQuery(conexion, "SELECT SUM(p.precio * dc.cantidad) AS 'Total ganado' FROM producto " +
 				"AS p INNER JOIN detalle_comanda AS dc ON p.id_producto = dc.id_producto");
 		try {
 			while(resultado.next()) {
@@ -417,7 +405,7 @@ public class main {
 	
 	public static void calcularValorTotalStock(Connection conexion) {
 		
-		ResultSet resultado = queries.ejecutarQuery(conexion, "SELECT SUM(p.precio * p.cantidad) AS 'Total valor stock' FROM productos " +
+		ResultSet resultado = queries.ejecutarQuery(conexion, "SELECT SUM(p.precio * p.cantidad) AS 'Total valor stock' FROM producto " +
 				"AS p");		
 		try {
 			while(resultado.next()) {

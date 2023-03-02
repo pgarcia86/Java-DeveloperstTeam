@@ -43,7 +43,7 @@ public class ConexionBaseDatos {
 		queries.ejecutar(conexion, "USE " + this.nombreDB);
 		
 		queries.ejecutar(conexion, "CREATE TABLE tipo_producto(id_tipo_producto INT PRIMARY KEY, descripcion VARCHAR(20))");
-		queries.ejecutar(conexion, "CREATE TABLE productos(id_producto INT UNIQUE PRIMARY KEY, id_tipo_producto INT NOT NULL, cantidad INT NOT NULL, precio DOUBLE NOT NULL, \r\n"
+		queries.ejecutar(conexion, "CREATE TABLE producto(id_producto INT UNIQUE PRIMARY KEY, id_tipo_producto INT NOT NULL, cantidad INT NOT NULL, precio DOUBLE NOT NULL, \r\n"
 				+ "	FOREIGN KEY(id_tipo_producto) REFERENCES tipo_producto(id_tipo_producto))");
 		queries.ejecutar(conexion, "CREATE TABLE arbol(id_arbol INT UNIQUE PRIMARY KEY, altura DOUBLE NOT NULL, precio DOUBLE NOT NULL, cantidad INT NOT NULL, id_tipo INT NOT NULL, \r\n"
 				+ "	FOREIGN KEY(id_tipo) REFERENCES tipo_producto(id_tipo_producto))");
@@ -53,7 +53,7 @@ public class ConexionBaseDatos {
 				+ "	FOREIGN KEY(id_tipo) REFERENCES tipo_producto(id_tipo_producto))");
 		queries.ejecutar(conexion, "CREATE TABLE comandas(id_comanda INT NOT NULL PRIMARY KEY, Dia DATE NOT NULL)");
 		queries.ejecutar(conexion, "CREATE TABLE detalle_comanda(id_comanda INT NOT NULL, id_producto INT, cantidad INT,\r\n"
-				+ "	FOREIGN KEY(id_comanda) REFERENCES comandas(id_comanda), FOREIGN KEY(id_producto) REFERENCES productos(id_producto))");
+				+ "	FOREIGN KEY(id_comanda) REFERENCES comandas(id_comanda), FOREIGN KEY(id_producto) REFERENCES producto(id_producto))");
 		queries.actualizar(conexion, "INSERT INTO tipo_producto(id_tipo_producto, descripcion) VALUES(1, \"Arbol\")");
 		queries.actualizar(conexion, "INSERT INTO tipo_producto(id_tipo_producto, descripcion) VALUES(2, \"Flor\")");
 		queries.actualizar(conexion, "INSERT INTO tipo_producto(id_tipo_producto, descripcion) VALUES(3, \"Decoracion\")");

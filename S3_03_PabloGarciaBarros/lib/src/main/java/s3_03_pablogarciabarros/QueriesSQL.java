@@ -25,11 +25,12 @@ public class QueriesSQL {
 	}
 	
 	
-	public int getStock(Connection conexion, String query) {			
+	public int getStock(Connection conexion, int id) {			
 		int cantidad = 0;		
 		try {
 			Statement consulta = conexion.createStatement();
-			ResultSet resultado = consulta.executeQuery(query);
+			ResultSet resultado = consulta.executeQuery("SELECT cantidad FROM producto WHERE id_producto = " + id
+					);
 			while(resultado.next()) {
 				return resultado.getInt(1);
 			}			
@@ -41,19 +42,36 @@ public class QueriesSQL {
 	}
 	
 	
-	public int getId(Connection conexion, String query) {			
+	public int getIdProducto(Connection conexion, int id) {			
 		int cantidad = 0;		
 		try {
 			Statement consulta = conexion.createStatement();
-			ResultSet resultado = consulta.executeQuery(query);
+			ResultSet resultado = consulta.executeQuery("SELECT id_producto FROM producto WHERE id_producto = " + id);
 			while(resultado.next()) {
 				return resultado.getInt(1);
 			}			
 		}
 		catch(SQLException e) {
-			System.out.println("No se puede hacer la consulta");
+			System.out.println("No se puede hacer la consulta - get");
 		}		
 		return cantidad;
+	}
+	
+	
+	public int getIdTipoProducto(Connection conexion, int id) {
+		int cantidad = 0;		
+		try {
+			Statement consulta = conexion.createStatement();
+			ResultSet resultado = consulta.executeQuery("SELECT id_tipo_producto FROM producto WHERE id_producto = " + id);
+			while(resultado.next()) {
+				return resultado.getInt(1);
+			}			
+		}
+		catch(SQLException e) {
+			System.out.println("No se puede hacer la consulta - getid tipo producto");
+		}		
+		return cantidad;
+		
 	}
 	
 	
@@ -68,6 +86,50 @@ public class QueriesSQL {
 	}
 	
 	
+	public boolean sumarStock(Connection conexion, int id, int cant, String nombreTabla) {
+				
+		try {
+			PreparedStatement insertarValores = conexion.prepareStatement("UPDATE " + nombreTabla + " SET cantidad = (cantidad + " + cant + ") WHERE id_" + nombreTabla + " = " + id);
+			insertarValores.executeUpdate("UPDATE " + nombreTabla + " SET cantidad = (cantidad + " + cant + ") WHERE id_" + nombreTabla + " = " + id);
+			return true;
+		}
+		catch(SQLException e) {
+			System.out.println("No se pudo hacer la consulta - sumarStock");
+			return false;
+		}
+	}
+
+	
+	public boolean restarStock(Connection conexion, int id, int cant, String nombreTabla) {
+		
+		try {
+			PreparedStatement insertarValores = conexion.prepareStatement("UPDATE " + nombreTabla + " SET cantidad = (cantidad - " + cant + ") WHERE id_" + nombreTabla +" = " + id);
+			insertarValores.executeUpdate("UPDATE " + nombreTabla + " SET cantidad = (cantidad - " + cant + ") WHERE id_" + nombreTabla +" = " + id);
+			return true;
+		}
+		catch(SQLException e) {
+			System.out.println("No se pudo hacer la consulta - restarStock");
+			return false;
+		}
+		
+	}
+	
+	
+	public boolean insertarDetalleComanda(Connection conexion, int idComanda, int id, int cant) {
+		try {
+			PreparedStatement insertarValores = conexion.prepareStatement("INSERT INTO detalle_comanda(id_comanda, id_producto, cantidad) VALUES(" + 
+				idComanda + ", " + id + ", " + cant + ")");
+			insertarValores.executeUpdate("INSERT INTO detalle_comanda(id_comanda, id_producto, cantidad) VALUES(" + 
+					idComanda + ", " + id + ", " + cant + ")");
+			return true;
+		}
+		catch(SQLException e) {
+			System.out.println("No se puede insertar el detalle en la comanda");
+			return false;
+		}
+		
+	}
+	
 	
 	public Connection crearDB(Connection conexion, String borrarDB, String query, String usarDB) {		
 		try {
@@ -80,6 +142,7 @@ public class QueriesSQL {
 		}
 		return conexion;
 	}
+	
 	
 	//Recibe por parametro los valores y se conecta al servicio SQL
 	public Connection conectar(String hostname, String puerto, String nombreDB, String usuario, String password) {		
