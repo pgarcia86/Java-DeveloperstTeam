@@ -6,6 +6,7 @@ public class FabricaFlor extends FabricaAbstracta{
 
 	Scanner in = new Scanner(System.in);
 	
+	//IMPLEMENTADO DE LA FABRICAABSTRACTA
 	@Override
 	Producto nuevoProducto() {		
 		
@@ -18,9 +19,17 @@ public class FabricaFlor extends FabricaAbstracta{
 		System.out.println("Ingrese la cantidad de Flores");
 		int cant = in.nextInt();		
 		
-		return new Flor(id, cant, precio, color);		
+		return new Flor(id, cant, precio, 2, color);		
+	}
+	
+	
+	@Override
+	Producto cargarProducto(int id, int cant, float precio, int tipoProducto) {
+		return null;
 	}
 
+	
+	//METODOS HEREDADOS DE FABRICAABSTRACTA NO IMPLEMENTADOS
 	@Override
 	Ticket nuevoTicket() {
 		return null;
@@ -28,6 +37,13 @@ public class FabricaFlor extends FabricaAbstracta{
 
 	@Override
 	ConexionBaseDatos nuevaConexion() {
+		return null;
+	}
+
+
+	@Override
+	DetalleComanda nuevoDetalleComanda(int idComanda, int idProducto, int cantidad) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 }

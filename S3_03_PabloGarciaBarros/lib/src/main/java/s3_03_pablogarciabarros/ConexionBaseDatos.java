@@ -4,21 +4,19 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class ConexionBaseDatos {
+public class ConexionBaseDatos extends QueriesSQL{
 	
 	private String hostname;
 	private String puerto = "3306";
-	private String nombreDB;
+	private String nombreBD;
 	private String usuario;
 	private String password;
-	private QueriesSQL queries;
 	
 	public ConexionBaseDatos(String hostname, String nombreDB, String usuario, String password) {
 		this.hostname = hostname;
-		this.nombreDB = nombreDB;
+		this.nombreBD = nombreDB;
 		this.usuario = usuario;
 		this.password = password;
-		this.queries = new QueriesSQL();
 	}
 	
 	
@@ -37,34 +35,32 @@ public class ConexionBaseDatos {
 	}
 	
 
-	public Connection crearNuevaDB() {
-		Connection conexion = conectarNuevaBD();
-		queries.ejecutar(conexion, "DROP DATABASE IF EXISTS " + this.nombreDB);
-		queries.ejecutar(conexion, "CREATE DATABASE " + this.nombreDB + " CHARACTER SET utf8mb4");
-		queries.ejecutar(conexion, "USE " + this.nombreDB);
+	public Connection crearNuevaDB() {		
 		
-		queries.ejecutar(conexion, "CREATE TABLE tipo_producto(id_tipo_producto INT PRIMARY KEY, descripcion VARCHAR(20))");
-		queries.ejecutar(conexion, "CREATE TABLE producto(id_producto INT UNIQUE PRIMARY KEY, id_tipo_producto INT NOT NULL, cantidad INT NOT NULL, precio DOUBLE NOT NULL, \r\n"
-				+ "	FOREIGN KEY(id_tipo_producto) REFERENCES tipo_producto(id_tipo_producto))");
-		queries.ejecutar(conexion, "CREATE TABLE arbol(id_arbol INT UNIQUE PRIMARY KEY, altura DOUBLE NOT NULL, precio DOUBLE NOT NULL, cantidad INT NOT NULL, id_tipo INT NOT NULL, \r\n"
-				+ "	FOREIGN KEY(id_tipo) REFERENCES tipo_producto(id_tipo_producto))");
-		queries.ejecutar(conexion, "CREATE TABLE flor(id_flor INT UNIQUE PRIMARY KEY, color VARCHAR(20) NOT NULL, precio DOUBLE NOT NULL, cantidad INT NOT NULL, id_tipo INT NOT NULL, \r\n"
-				+ "	FOREIGN KEY(id_tipo) REFERENCES tipo_producto(id_tipo_producto))");
-		queries.ejecutar(conexion, "CREATE TABLE decoracion(id_decoracion INT UNIQUE PRIMARY KEY, material VARCHAR(20) NOT NULL, precio DOUBLE NOT NULL, cantidad INT NOT NULL, id_tipo INT NOT NULL, \r\n"
-				+ "	FOREIGN KEY(id_tipo) REFERENCES tipo_producto(id_tipo_producto))");
-		queries.ejecutar(conexion, "CREATE TABLE comandas(id_comanda INT NOT NULL PRIMARY KEY, Dia DATE NOT NULL)");
-		queries.ejecutar(conexion, "CREATE TABLE detalle_comanda(id_comanda INT NOT NULL, id_producto INT, cantidad INT,\r\n"
-				+ "	FOREIGN KEY(id_comanda) REFERENCES comandas(id_comanda), FOREIGN KEY(id_producto) REFERENCES producto(id_producto))");
-		queries.insertarTipoProducto(conexion, 1, "Arbol");
-		queries.insertarTipoProducto(conexion, 2, "Flor");
-		queries.insertarTipoProducto(conexion, 1, "Decoracion");
+		Connection conexion = conectarNuevaBD();
+		this.borrarBD(conexion, this.nombreBD);
+		this.crearBD(conexion, this.nombreBD);
+		this.usarBD(conexion, this.nombreBD);
+		
+		ProductoraFabricaTabla.getFabrica(1).nuevaTabla().crearTabla(conexion);
+		ProductoraFabricaTabla.getFabrica(1).nuevaTabla().insertarTipoProducto(conexion, 1, "Arbol");
+		ProductoraFabricaTabla.getFabrica(1).nuevaTabla().insertarTipoProducto(conexion, 2, "Flor");
+		ProductoraFabricaTabla.getFabrica(1).nuevaTabla().insertarTipoProducto(conexion, 3, "Decoracion");
+		
+		ProductoraFabricaTabla.getFabrica(2).nuevaTabla().crearTabla(conexion);
+		ProductoraFabricaTabla.getFabrica(3).nuevaTabla().crearTabla(conexion);
+		ProductoraFabricaTabla.getFabrica(4).nuevaTabla().crearTabla(conexion);
+		ProductoraFabricaTabla.getFabrica(5).nuevaTabla().crearTabla(conexion);
+		ProductoraFabricaTabla.getFabrica(6).nuevaTabla().crearTabla(conexion);
+		ProductoraFabricaTabla.getFabrica(7).nuevaTabla().crearTabla(conexion);	
+		
 		return conexion;
 	}
 	
 	
 	public Connection conectarDB() {
 			
-		String url = "jdbc:mysql://" + hostname + ":" + puerto + "/" + nombreDB + "?useSSL=false";
+		String url = "jdbc:mysql://" + hostname + ":" + puerto + "/" + nombreBD + "?useSSL=false";
 		Connection conexion = null;		
 		try {
 			conexion = DriverManager.getConnection(url, usuario, password);
@@ -74,5 +70,64 @@ public class ConexionBaseDatos {
 			System.out.println("No se pudo conectar al servicio");
 		}		
 		return conexion;
+	}
+
+
+	@Override
+	public Connection borrarBD(Connection conexion, String nombreBD) {
+		try {
+			conexion.createStatement().execute("DROP DATABASE IF EXISTS " + nombreBD);
+		}
+		catch(SQLException e) {
+			System.out.println("ERROR - NO SE PUEDE BORRAR LA BD");
+		}
+		return conexion;
+	}
+
+
+	@Override
+	public Connection crearBD(Connection conexion, String nombreBD) {
+		try {
+			conexion.createStatement().execute("CREATE DATABASE " + nombreBD + " CHARACTER SET utf8mb4");
+		}
+		catch(SQLException e) {
+			System.out.println("ERROR - NO SE PUEDE CREAR LA BD");
+		}
+		return conexion;
+	}
+
+
+	@Override
+	public Connection usarBD(Connection conexion, String nombreBD) {
+		try {
+			System.out.println("USE " + nombreBD);
+			conexion.createStatement().execute("USE " + nombreBD);
+		}
+		catch(SQLException e) {
+			System.out.println("ERROR - NO SE PUEDE USAR LA BD");
+		}
+		return conexion;
+	}
+	
+	
+
+
+	@Override	
+	public void insertarTipoProducto(Connection conexion, int idTipoProducto, String descripcion) {
+		// TODO Auto-generated method stub		
+	}
+	
+
+
+	@Override
+	public void insertar(Connection conexion) {
+		// TODO Auto-generated method stub		
+	}
+
+
+	@Override
+	public Connection crearTabla(Connection conexion) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

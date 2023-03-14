@@ -3,16 +3,19 @@ package s3_03_pablogarciabarros;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class main {
 
 	static Scanner in = new Scanner(System.in);
-	static ConexionBaseDatos conexion = null;
-	static Connection conect = null;
 	static String nombreDB;
 	static FabricaAbstracta fabrica = null;
-	static QueriesSQL queries = new QueriesSQL();
+	static QueriesConsulta queries = null;
+	static Producto productoAuxiliar = null; 
+	static Ticket nuevoTicket = null;
+	static DetalleComanda detalleComanda = null;
 	
 	
 	public static void main(String[] args) {
@@ -20,6 +23,7 @@ public class main {
 		
 		int opcion;
 		Connection conexion = null;
+		queries = new QueriesConsulta();
 		
 		do {
 		conexion = primerMenu();
@@ -33,7 +37,7 @@ public class main {
 		}while(opcion != 0);		
 	}
 	
-	
+	//EN ESTE PRIMER MENU PREGUNTO SI ES UNA BASE DE DATOS NUEVA O SI LA DEBE CREAR
 	public static Connection primerMenu() {
 		System.out.println("INGRESE LA OPCION DESEADA" +
 			"\n1. Conectarse a una floristeria existente" +
@@ -51,11 +55,11 @@ public class main {
 		}		
 	}
 
-	
+	//ESTE METODO SOLAMENTE IMPRIME POR PANTALLA LAS OPCIONES DISPONIBLES PARA EL MENU
 	public static int menuPrincipal() {		
 		System.out.println("INGRESE LA OPCION DESEADA: " +
-			"\n1. Agregar un producto nuevo"	+
-			"\n2. Actulizar cantidad de productos ya existentes" +
+			"\n1. Insertar un nuevo producto"	+
+			"\n2. Sumar un productos" +
 			"\n3. Retirar un producto" +
 			"\n4. Imprimir stock" +
 			"\n5. Crear ticket de venta" +
@@ -64,11 +68,10 @@ public class main {
 			"\n0. Salir de la aplicacion");	
 		
 		return in.nextInt();
-	}
+	}	
 	
-	
-	public static void manejoMenu(Connection conexion, int opcion) {
-		
+	//ESTE METODO MANEJA EL MENU	
+	public static void manejoMenu(Connection conexion, int opcion) {		
 		switch(opcion) {		 
 		 case 1:
 			 agregarProductoNuevo(conexion);
@@ -79,7 +82,11 @@ public class main {
 			 break;
 		 
 		 case 3:
-			 retirarProducto(conexion);
+			System.out.println("Ingrese el id del producto");
+			int id = in.nextInt();
+			System.out.println("Ingrese la cantidad a retirar");
+			int cantidad = in.nextInt();
+			 retirarProducto(conexion, id, cantidad);
 			 break;
 			 
 		 case 4:
@@ -95,7 +102,7 @@ public class main {
 			 break;
 			 
 		 case 7: 
-			 System.out.println("El valor total del stock es: " + queries.calcularValorTotalStock(conexion) + "€");
+			 //System.out.println("El valor total del stock es: " + queries.calcularValorTotalStock(conexion) + "€");
 			 break;
 			 
 		 case 0:
@@ -109,8 +116,12 @@ public class main {
 	}	
 
 	
-	public static void agregarProductoNuevo(Connection conexion) {
-		
+	/* 
+	 PARA ESTOS METODOS CREO UN PRODUCTO LOCAL, LO MODIFICO Y LUEGO LO CARGO EN LA BASE DE DATOS
+	 */	
+	
+	//ESTE METODO INSERTA EN LA BASE DE DATOS EL PRODUCTO INGRESADO ---- FUNCIONA PERFECTO
+	public static void agregarProductoNuevo(Connection conexion) {		
 		System.out.println("INGRESE LA OPCION DESEADA: " +
 			"\n1. Agregar arbol" +
 			"\n2. Agregar planta" +
@@ -121,18 +132,15 @@ public class main {
 		
 		switch(opcion) {
 			case 1:
-				Arbol arbol = (Arbol)ProductoraFabricas.getFabrica(opcion).nuevoProducto();
-				arbol.agregarProducto(conexion);
+				ProductoraFabricas.getFabrica(opcion).nuevoProducto().insertar(conexion);			
 				break;
 				
 			case 2:
-				Flor flor = (Flor)ProductoraFabricas.getFabrica(opcion).nuevoProducto();
-				flor.agregarProducto(conexion);
+				ProductoraFabricas.getFabrica(opcion).nuevoProducto().insertar(conexion);
 				break;
 				
 			case 3:
-				Decoracion decoracion = (Decoracion)ProductoraFabricas.getFabrica(opcion).nuevoProducto();
-				decoracion.agregarProducto(conexion);
+				ProductoraFabricas.getFabrica(opcion).nuevoProducto().insertar(conexion);
 				break;
 				
 			case 0:
@@ -144,139 +152,158 @@ public class main {
 				break;
 		}		
 	}
-		
 
-	public static void agregarProducto(Connection conexion) {
+	//ESTE METODO SUMA STOCK
+	public static void agregarProducto(Connection conexion) {		
 		System.out.println("Ingrese el id del producto");
 		int id = in.nextInt();
-		System.out.println("Ingrese la cantidad a añadir");
-		int cant = in.nextInt();
+		System.out.println("Ingrese la cantidad a agregar");
+		int cantidad = in.nextInt();
 		
-		int tipoProd = queries.getIdTipoProducto(conexion, id);
-		int idProdCargado = queries.getIdProducto(conexion, id);
-		
-		if(idProdCargado == 0) {
-			System.out.println("El producto no esta cargado en la Base de Datos");
+		if(QueriesConsulta.buscar(conexion, id) == false) {
+			System.out.println("El producto no esta cargado en la Base de datos");
 		}
 		else {
-			queries.sumarStock(conexion, id, cant, "producto"); //Paso como parametro la conexion, el id, la cantidad y la tabla que quiero actualizar
-		}
-		
-		switch(tipoProd) {
-			case 1:
-				queries.sumarStock(conexion, id, cant, "arbol");
-				break;
-			case 2:
-				queries.sumarStock(conexion, id, cant, "flor");
-				break;
-			case 3:
-				queries.sumarStock(conexion, id, cant, "decoracion");
-				break;
-		}
-	}
-
-
-	public static int[] retirarProducto(Connection conexion) {
-		System.out.println("Ingrese el id del producto");
-		int id = in.nextInt();
-		System.out.println("Ingrese la cantidad a retirar");
-		int cant = in.nextInt();
-		
-		int tipoProd = queries.getIdTipoProducto(conexion, id);
-		int idProdCargado = queries.getIdProducto(conexion, id);
-		
-		if(idProdCargado == 0) {
-			System.out.println("El producto no esta cargado en la Base de Datos");
+			//SI ENCONTRO EL PRODUCTO, EL METODO CARGAR PRODUCTO ME CREA UN OBJETO DEL TIPO PRODUCTO CON LOS DATOS DEL PRODUCTO CARGADO
+			productoAuxiliar = cargarProducto(conexion, id); 
+			productoAuxiliar.agregar(conexion, id, cantidad);
+		}			
+	}		
+	
+	//ESTE METODO RESTA STOCK
+	public static Producto retirarProducto(Connection conexion, int id, int cantidad) {		
+		if(QueriesConsulta.buscar(conexion, id) == false) {
+			System.out.println("El producto no esta cargado en la Base de datos");
+			return null;
 		}
 		else {
-			int stock = queries.getStock(conexion, id);
-			if(cant <= stock) {
-				queries.restarStock(conexion, id, cant, "producto");	//Paso como parametro la conexion, el id, la cantidad y la tabla que quiero actualizar
-				switch(tipoProd) {
-				case 1:
-					queries.restarStock(conexion, id, cant, "arbol");
-					return new int []{id, cant};
-				case 2:
-					queries.restarStock(conexion, id, cant, "flor");
-					return new int []{id, cant};
-				case 3:
-					queries.restarStock(conexion, id, cant, "decoracion");
-					return new int []{id, cant};
-				}
+			Producto productoAuxiliar = cargarProducto(conexion, id); //CREO EL METODO EN PRODUCTO PARA AGREGARPRODUCTO
+			if(productoAuxiliar.getCantidad() >= cantidad) {
+				productoAuxiliar.retirar(conexion, id, cantidad);
+				System.out.println("SE RETIRO EL PRODUCTO CORRECTAMENTE");
+				return productoAuxiliar;
 			}
 			else {
-				System.out.println("No se puede retirar mas de lo cargado");
-				
-			}			
+				System.out.println("NO SE PUEDE RETIRAR MAS DE LO QUE TIENES EN STOCK");
+				return null;
+			}
 		}
-		return new int[] {0,0};
-	}
-
-	
-	public static void menuImprimirStock(Connection conexion) {
 		
+	}
+		
+	
+	/*
+	 PARA ESTOS METODOS EJECUTO DIRECTAMENTE LOS QUERIES PORQUE NO NECESITO CARGAR EL PRODUCTO PORQUE SOLO NECESITO OBTENER DATOS
+	 ESTOS QUERIES ESTAN EN LA CLASE QUERIES_CONSULTA
+	 */	
+	
+	//ESTE METODO IMPRIME POR PANTALLA EL MENU QUE IMPRIME POR PANTALLA
+	public static void menuImprimirStock(Connection conexion) {		
 		System.out.println("INGRESE LA OPCION DESEADA: " +
-			"\n1. Imprimir stock de arboles" +
-			"\n2. Imprimir stock de plantas" +
-			"\n3. Imprimir stock de decoraciones" +
-			"\n4. Imprimir el total de productos" +
-			"\n0. Volver al menu anterior");
+				"\n1. Imprimir stock arboles" +
+				"\n2. Imprimir stock flores" +
+				"\n3. Imprimir stock decoracion" +
+				"\n4. Imprimir stock de un producto" +
+				"\n5. Imprimir stock total" +
+				"\n0. Volver al menu anterior");
 		
-		switch(in.nextInt()) {				
-			case 1:
-				System.out.println("Hay en stock: " + queries.imprimirStockArboles(conexion) + " arboles");
+		int tipoProducto = in.nextInt();
+		
+		switch(tipoProducto) {
+			case 1:	//TENGO QUE CONTAR TODOS LOS ARBOLES
+				imprimirStockCategoria(conexion, 1);
 				break;
 				
-			case 2:
-				System.out.println("Hay en stock: " + queries.imprimirStockFlores(conexion) + " flores");
+			case 2:	//TENGO QUE CONTAR LAS FLORES
+				imprimirStockCategoria(conexion, 2);
 				break;
 				
-			case 3:
-				System.out.println("Hay en stock: " + queries.imprimirStockDecoracion(conexion) + " decoraciones");
+			case 3:	//TENGO QUE CONTAR LAS DECORACION
+				imprimirStockCategoria(conexion, 3);
 				break;
-			
-			case 4:
-				System.out.println("Hay en stock: " + queries.imprimirStockTotal(conexion) + " productos");
+				
+			case 4:	//TENGO QUE CONTAR TODOS LOS PRODUCTOS
+				imprimirStockProducto(conexion);
+				break;
+				
+			case 5:
+				imprimirStockTotal(conexion);
+				break;
 				
 			case 0:
 				menuPrincipal();
 				break;
-			
+				
 			default:
 				System.out.println("Opcion no valida");
 				break;
+		}
+		
+	}
+	
+	//ESTE METODO IMPRIME EL STOCK
+	public static void imprimirStockProducto(Connection conexion) {		
+		System.out.println("Ingrese el id del producto");
+		int id = in.nextInt();																		 
+																		
+		if(QueriesConsulta.buscar(conexion, id) == false) {
+			System.out.println("El producto no esta cargado en la Base de datos");
+		}
+		else {	
+			System.out.println("Hay en stock: " + QueriesConsulta.getStock(conexion, id));
 		}		
 	}
-
 	
-	public static void crearTicket(Connection conexion) {
-			
-		String continuar = "n";
-		boolean flag = false;
-		
-		Ticket ticket = (Ticket)ProductoraFabricas.getFabrica(4).nuevoTicket();
-		int[] idCant;	
-		do {
-			idCant = retirarProducto(conexion);
-			if(idCant[0] != 0 && flag == false) {
-				ticket.insertarTicket(conexion, ticket.getId(), ticket.getFecha());
-				queries.insertarDetalleComanda(conexion, ticket.getId(), idCant[0], idCant[1]);
-				flag = true;
-			}
-			else if(idCant[0] != 0 && flag == true){
-				queries.insertarDetalleComanda(conexion, ticket.getId(), idCant[0], idCant[1]);
-			}			
-			else {
-				System.out.println("No se pudo añadir el producto a la comanda");
-			}
-			System.out.println("Quiere ingresar mas productos?(S/N)");
-			continuar = in.next();
-			
-		}while(continuar.equalsIgnoreCase("s"));
-		System.out.println("El precio de la comanda es: " + queries.getPrecioComanda(conexion, ticket.getId()));
+	//IMPRIMIR STOCK PARTICULAR
+	public static void imprimirStockCategoria(Connection conexion, int tipoProducto) {			
+		System.out.println("Hay en stock: " + QueriesConsulta.getStockCategoria(conexion, tipoProducto));
+	}
+
+	//IMPRIME EL STOCK TOTAL
+	public static void imprimirStockTotal(Connection conexion) {		
+		System.out.println("Hay en stock: " + QueriesConsulta.getStockTotal(conexion));
 	}
 	
+	
+	/*
+	 * 
+	 * 
+	 ESTOS METODOS SON PARA CREAR TICKET
+	 	ESTO FUNCIONA
+	 * 
+	 * 
+	 */
 		
+	public static void crearTicket(Connection conexion) {			
+		String continuar = "n";		
+		nuevoTicket = (Ticket)ProductoraFabricas.getFabrica(4).nuevoTicket();	
+		nuevoTicket.insertarTicket(conexion);
+		
+		do {		
+			System.out.println("Ingrese el id del producto");
+			int id = in.nextInt();
+			System.out.println("Ingrese la cantidad a retirar");
+			int cantidad = in.nextInt();			
+			productoAuxiliar = retirarProducto(conexion, id, cantidad);			
+			
+			if(productoAuxiliar != null) {
+
+				//CREO UN OBJETO DE LA CLASE DETALLEPRODUCTO Y LO INSERTO EN LA TABLA DETALLE PRODUCTO				
+				detalleComanda = (DetalleComanda)ProductoraFabricas.getFabrica(7).nuevoDetalleComanda(nuevoTicket.getId(), productoAuxiliar.getId(), cantidad);
+				detalleComanda.insertar(conexion);
+				
+				System.out.println("Quiere ingresar mas productos en el ticket?(S/N)");
+				continuar = in.next();
+			}			
+		}while(continuar.equalsIgnoreCase("s"));
+		System.out.println("El precio final de la comanda es " + QueriesConsulta.precioComanda(conexion, nuevoTicket.getId()) + "€");
+	}
+	
+	
+	/*
+	 ESTOS METODOS SON PARA EL HISTORICO DE VENTAS	   
+	 */	
+	//TENGO QUE IMPLEMENTARLO NUEVAMENTE
 	public static void menuHistoricoVentas(Connection conexion) {
 		
 		System.out.println("INGRESE LA OPCION DESEADA: " +
@@ -303,7 +330,7 @@ public class main {
 		}		
 	}
 
-	
+	//TENGO QUE IMPLEMENTARLO NUEVAMENTE
 	public static void historicoVentas(Connection conexion) {
 		
 		System.out.println("Ingrese la fecha de comienzo de la consulta (formato AAAA-MM-DD)");
@@ -320,5 +347,16 @@ public class main {
 		} catch (SQLException e) {
 		}
 	}
-
+	
+	
+	
+	//CREO EL PRODUCTO CON LOS DATOS QUE LE PASO POR PARAMETRO QUE LOS OBTENGO DE LOS METODOS ANTERIORES
+	public static Producto cargarProducto(Connection conexion, int id) {		
+		int cantidad = QueriesConsulta.getCantidad(conexion, id);
+		float precio = QueriesConsulta.getPrecio(conexion, id);
+		int tipoProducto = QueriesConsulta.getTipoProducto(conexion, id);
+		
+		return ProductoraFabricas.getFabrica(6).cargarProducto(id, cantidad, precio, tipoProducto); 	
+	}
+		
 }

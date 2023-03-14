@@ -14,6 +14,10 @@ public class ProductoraFabricas {
 				return new FabricaTicket();
 			case 5:
 				return new FabricaConexion();
+			case 6:
+				return new FabricaProducto();
+			case 7:
+				return new FabricaDetalleComanda();
 			default:
 				return null;					
 		}

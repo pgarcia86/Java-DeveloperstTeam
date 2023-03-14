@@ -5,17 +5,9 @@ import java.util.Scanner;
 public class FabricaConexion extends FabricaAbstracta{
 
 	Scanner in = new Scanner(System.in);
+
 	
-	@Override
-	Producto nuevoProducto() {
-		return null;
-	}
-
-	@Override
-	Ticket nuevoTicket() {
-		return null;
-	}
-
+	//IMPLEMENTADO DE LA FABRICAABSTRACTA
 	@Override
 	ConexionBaseDatos nuevaConexion() {
 		System.out.println("Ingrese el hostname");
@@ -28,5 +20,33 @@ public class FabricaConexion extends FabricaAbstracta{
 		String password = in.next();
 		return new ConexionBaseDatos(hostname, nombreDB, usuario, password);
 	}
+	
+	
+	
+	//METODOS HEREDADOS DE FABRICAABSTRACTA NO IMPLEMENTADOS
+	@Override
+	Producto nuevoProducto() {
+		return null;
+	}
 
+	@Override
+	Ticket nuevoTicket() {
+		return null;
+	}
+
+
+
+	@Override
+	Producto cargarProducto(int id, int cant, float precio, int tipoProducto) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+
+	@Override
+	DetalleComanda nuevoDetalleComanda(int idComanda, int idProducto, int cantidad) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
